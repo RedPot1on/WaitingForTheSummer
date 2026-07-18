@@ -10,6 +10,7 @@ public class IndexModel(ApplicationDbContext db) : PageModel
         int Id,
         string Title,
         int SortOrder,
+        int Points,
         bool IsPublished,
         bool IsOnceOnly,
         string RequirementSummary);
@@ -34,6 +35,7 @@ public class IndexModel(ApplicationDbContext db) : PageModel
             q.Id,
             q.Title,
             q.SortOrder,
+            q.Points,
             q.IsPublished,
             q.IsOnceOnly,
             q.Requirements.Count == 0

@@ -19,6 +19,7 @@
         <tr>
             <th>Порядок</th>
             <th>Название</th>
+            <th>Баллы</th>
             <th>Опубликован</th>
             <th>Один раз</th>
             <th>Требования</th>
@@ -31,6 +32,7 @@
         <tr>
             <td>@q.SortOrder</td>
             <td>@q.Title</td>
+            <td>@q.Points</td>
             <td>@(q.IsPublished ? "да" : "нет")</td>
             <td>@(q.IsOnceOnly ? "да" : "нет")</td>
             <td>@q.RequirementSummary</td>

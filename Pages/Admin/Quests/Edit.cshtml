@@ -39,6 +39,12 @@
         <input asp-for="Input.IsOnceOnly" class="form-check-input" />
         <label asp-for="Input.IsOnceOnly" class="form-check-label"></label>
     </div>
+    <div class="mb-3">
+        <label asp-for="Input.Points" class="form-label"></label>
+        <input asp-for="Input.Points" class="form-control" type="number" min="0" step="1" required />
+        <div class="form-text">При успехе игрок получает эти баллы, при провале — 0.</div>
+        <span asp-validation-for="Input.Points" class="text-danger"></span>
+    </div>
 
     <div class="mb-3">
         <label class="form-label">Иконка</label>

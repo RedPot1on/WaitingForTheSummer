@@ -19,6 +19,7 @@
     </div>
 
     <h1 class="page-title">@Model.Quest.Title</h1>
+    <p class="mb-2"><strong>Баллы за успех:</strong> @Model.Quest.Points</p>
     <p class="quest-details__desc">@Model.Quest.Description</p>
 
     @if (Model.Requirements.Count > 0)

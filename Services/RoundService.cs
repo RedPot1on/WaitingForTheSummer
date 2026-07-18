@@ -126,7 +126,9 @@ public sealed class RoundService(ApplicationDbContext db, IQuestAccessService qu
         if (outcome is not (RoundStatus.Succeeded or RoundStatus.Failed))
             return (false, "Некорректный исход");
 
-        var round = await db.Rounds.FirstOrDefaultAsync(r => r.Id == roundId, cancellationToken);
+        var round = await db.Rounds
+            .Include(r => r.Quest)
+            .FirstOrDefaultAsync(r => r.Id == roundId, cancellationToken);
         if (round is null)
             return (false, "Запись не найдена");
 
@@ -136,8 +138,15 @@ public sealed class RoundService(ApplicationDbContext db, IQuestAccessService qu
         round.Status = outcome;
         round.ResolvedAt = DateTime.UtcNow;
         round.ResolvedByAdminId = adminUserId;
+        round.PointsAwarded = outcome == RoundStatus.Succeeded ? round.Quest.Points : 0;
 
         await db.SaveChangesAsync(cancellationToken);
         return (true, null);
     }
+
+    public Task<int> GetPlayerTotalPointsAsync(string userId, CancellationToken cancellationToken = default) =>
+        db.Rounds
+            .AsNoTracking()
+            .Where(r => r.UserId == userId && r.Status == RoundStatus.Succeeded)
+            .SumAsync(r => (int?)r.PointsAwarded ?? 0, cancellationToken);
 }

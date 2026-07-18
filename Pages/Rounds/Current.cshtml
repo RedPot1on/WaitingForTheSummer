@@ -37,7 +37,17 @@ else
         }
     </div>
     <h1 class="page-title">@Model.Round.Quest.Title</h1>
-    <p class="text-muted">Взят: @Model.Round.StartedAt.ToLocalTime().ToString("g")</p>
+    <p class="text-muted mb-1">Взят: @Model.Round.StartedAt.ToLocalTime().ToString("g")</p>
+    <p class="mb-3">
+        @if (Model.Round.Status == WaitingForTheSummer.Models.RoundStatus.InProgress)
+        {
+            <span>За успех: <strong>@Model.Round.Quest.Points</strong> б.</span>
+        }
+        else
+        {
+            <span>Начислено: <strong>@Model.Round.PointsAwarded</strong> б.</span>
+        }
+    </p>
 
     <div class="quest-body border rounded p-3 mb-4">
         @Html.Raw(Model.Round.Quest.BodyContent)

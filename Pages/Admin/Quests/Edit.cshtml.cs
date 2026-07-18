@@ -44,6 +44,11 @@ public class EditModel(ApplicationDbContext db, IWebHostEnvironment env) : PageM
         [Display(Name = "Только один раз")]
         public bool IsOnceOnly { get; set; }
 
+        [Required(ErrorMessage = "Укажите баллы")]
+        [Range(0, int.MaxValue, ErrorMessage = "Баллы не могут быть отрицательными")]
+        [Display(Name = "Баллы")]
+        public int Points { get; set; }
+
         public string? ExistingIconPath { get; set; }
     }
 
@@ -71,6 +76,7 @@ public class EditModel(ApplicationDbContext db, IWebHostEnvironment env) : PageM
             SortOrder = quest.SortOrder,
             IsPublished = quest.IsPublished,
             IsOnceOnly = quest.IsOnceOnly,
+            Points = quest.Points,
             ExistingIconPath = quest.IconPath
         };
 
@@ -109,6 +115,7 @@ public class EditModel(ApplicationDbContext db, IWebHostEnvironment env) : PageM
         quest.SortOrder = Input.SortOrder;
         quest.IsPublished = Input.IsPublished;
         quest.IsOnceOnly = Input.IsOnceOnly;
+        quest.Points = Input.Points;
 
         if (IconFile is { Length: > 0 })
         {

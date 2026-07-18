@@ -24,6 +24,9 @@ public class Round
 
     public DateTime? ResolvedAt { get; set; }
 
+    /// <summary>Начисленные баллы после резолва (успех = баллы квеста, провал = 0).</summary>
+    public int PointsAwarded { get; set; }
+
     public string? ResolvedByAdminId { get; set; }
     public IdentityUser? ResolvedByAdmin { get; set; }
 }

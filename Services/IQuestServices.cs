@@ -38,4 +38,5 @@ public interface IRoundService
     Task<Round?> GetPlayerTakeInActiveGameRoundAsync(string userId, CancellationToken cancellationToken = default);
     Task<(bool Ok, string? Error, Round? Round)> TakeQuestAsync(string userId, int questId, CancellationToken cancellationToken = default);
     Task<(bool Ok, string? Error)> ResolveAsync(int roundId, RoundStatus outcome, string adminUserId, CancellationToken cancellationToken = default);
+    Task<int> GetPlayerTotalPointsAsync(string userId, CancellationToken cancellationToken = default);
 }

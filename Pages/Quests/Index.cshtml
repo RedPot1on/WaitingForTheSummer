@@ -6,7 +6,10 @@
 
 <div class="player-page">
     <div class="page-header mb-3">
-        <h1 class="page-title mb-2">Доска квестов</h1>
+        <div>
+            <h1 class="page-title mb-1">Доска квестов</h1>
+            <div class="text-muted">Ваши баллы: <strong>@Model.TotalPoints</strong></div>
+        </div>
         @if (Model.HasTakenQuest)
         {
             <a class="btn btn-warning btn-touch w-100 w-sm-auto" asp-page="/Rounds/Current">Мой квест</a>
@@ -53,6 +56,7 @@
                 }
             </div>
             <h2 class="quest-card__title">@quest.Title</h2>
+            <div class="quest-card__points">@quest.Points б.</div>
 
             @if (item.IsSelectedInCurrentRound)
             {

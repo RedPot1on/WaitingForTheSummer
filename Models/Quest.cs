@@ -23,6 +23,10 @@ public class Quest
     /// <summary>После успешного прохождения нельзя начать снова.</summary>
     public bool IsOnceOnly { get; set; }
 
+    /// <summary>Баллы за успешное прохождение (при провале — 0).</summary>
+    [Range(0, int.MaxValue)]
+    public int Points { get; set; }
+
     public int SortOrder { get; set; }
 
     public ICollection<QuestRequirement> Requirements { get; set; } = new List<QuestRequirement>();

@@ -11,6 +11,7 @@ public class IndexModel(IQuestAccessService questAccess, IRoundService roundServ
     public IReadOnlyList<QuestBoardItem> Items { get; private set; } = [];
     public GameRound? ActiveGameRound { get; private set; }
     public bool HasTakenQuest { get; private set; }
+    public int TotalPoints { get; private set; }
     public string? StatusMessage { get; private set; }
 
     public async Task OnGetAsync(CancellationToken cancellationToken)
@@ -19,6 +20,7 @@ public class IndexModel(IQuestAccessService questAccess, IRoundService roundServ
         Items = await questAccess.GetBoardAsync(userId, cancellationToken);
         ActiveGameRound = await roundService.GetActiveGameRoundAsync(cancellationToken);
         HasTakenQuest = await roundService.GetPlayerTakeInActiveGameRoundAsync(userId, cancellationToken) is not null;
+        TotalPoints = await roundService.GetPlayerTotalPointsAsync(userId, cancellationToken);
         StatusMessage = TempData["StatusMessage"] as string;
     }
 

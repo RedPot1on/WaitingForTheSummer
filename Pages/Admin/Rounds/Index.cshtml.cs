@@ -14,6 +14,8 @@ public class IndexModel(ApplicationDbContext db, IRoundService roundService) : P
         int Id,
         string? UserName,
         string QuestTitle,
+        int QuestPoints,
+        int PointsAwarded,
         RoundStatus Status,
         DateTime StartedAt);
 
@@ -39,6 +41,8 @@ public class IndexModel(ApplicationDbContext db, IRoundService roundService) : P
                     r.Id,
                     r.User.UserName,
                     r.Quest.Title,
+                    r.Quest.Points,
+                    r.PointsAwarded,
                     r.Status,
                     r.StartedAt))
                 .ToListAsync(cancellationToken);

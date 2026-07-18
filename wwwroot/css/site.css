@@ -119,6 +119,12 @@ body.role-admin .container-player {
   margin: 0;
 }
 
+.quest-card__points {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0d6efd;
+}
+
 .quest-card__actions {
   display: flex;
   flex-direction: column;

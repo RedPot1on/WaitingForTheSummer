@@ -45,6 +45,7 @@ else
             <tr>
                 <th>Игрок</th>
                 <th>Квест</th>
+                <th>Баллы</th>
                 <th>Статус</th>
                 <th>Взят</th>
                 <th></th>
@@ -56,6 +57,16 @@ else
             <tr>
                 <td>@r.UserName</td>
                 <td>@r.QuestTitle</td>
+                <td>
+                    @if (r.Status == WaitingForTheSummer.Models.RoundStatus.InProgress)
+                    {
+                        <span>до @r.QuestPoints</span>
+                    }
+                    else
+                    {
+                        <span>@r.PointsAwarded</span>
+                    }
+                </td>
                 <td>@Model.StatusLabel(r.Status)</td>
                 <td>@r.StartedAt.ToLocalTime().ToString("g")</td>
                 <td class="text-end">
