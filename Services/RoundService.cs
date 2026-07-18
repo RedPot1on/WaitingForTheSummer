@@ -83,9 +83,9 @@ public sealed class RoundService(ApplicationDbContext db, IQuestAccessService qu
         int questId,
         CancellationToken cancellationToken = default)
     {
-        var (canStart, reason) = await questAccess.CanStartAsync(userId, questId, cancellationToken);
+        var (canStart, reason, _) = await questAccess.CanStartAsync(userId, questId, cancellationToken);
         if (!canStart)
-            return (false, reason, null);
+            return (false, reason ?? "Квест недоступен", null);
 
         var active = await GetActiveGameRoundAsync(cancellationToken);
         if (active is null)

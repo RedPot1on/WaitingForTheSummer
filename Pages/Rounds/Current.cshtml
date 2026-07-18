@@ -4,6 +4,7 @@
     ViewData["Title"] = "Мой квест";
 }
 
+<div class="player-page">
 @if (Model.Round is null)
 {
     <div class="alert alert-secondary">
@@ -15,12 +16,12 @@
         {
             <span>Раунд № @Model.ActiveGameRound.Number идёт, но вы ещё не взяли квест.</span>
         }
-        <a asp-page="/Quests/Index">К доске квестов</a>
     </div>
+    <a class="btn btn-primary btn-touch w-100" asp-page="/Quests/Index">К доске квестов</a>
 }
 else
 {
-    <div class="mb-3">
+    <div class="mb-3 d-flex flex-wrap gap-2">
         <span class="badge text-bg-warning">Раунд № @Model.Round.GameRound.Number</span>
         @if (Model.Round.Status == WaitingForTheSummer.Models.RoundStatus.InProgress)
         {
@@ -35,7 +36,7 @@ else
             <span class="badge text-bg-danger">Провал</span>
         }
     </div>
-    <h1>@Model.Round.Quest.Title</h1>
+    <h1 class="page-title">@Model.Round.Quest.Title</h1>
     <p class="text-muted">Взят: @Model.Round.StartedAt.ToLocalTime().ToString("g")</p>
 
     <div class="quest-body border rounded p-3 mb-4">
@@ -49,5 +50,6 @@ else
         </div>
     }
 
-    <a class="btn btn-outline-secondary" asp-page="/Quests/Index">К доске</a>
+    <a class="btn btn-outline-secondary btn-touch w-100" asp-page="/Quests/Index">К доске</a>
 }
+</div>

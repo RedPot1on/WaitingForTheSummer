@@ -10,35 +10,49 @@
     return;
 }
 
-<div class="row">
-    <div class="col-md-8">
-        <h1>@Model.Quest.Title</h1>
-        <p class="lead" style="white-space: pre-wrap">@Model.Quest.Description</p>
-
-        @if (Model.RequiredTitles.Count > 0)
-        {
-            <p><strong>Требования:</strong> @string.Join(", ", Model.RequiredTitles)</p>
-        }
-        else
-        {
-            <p class="text-muted">Стартовый квест — требования не нужны.</p>
-        }
-
-        <div class="d-flex gap-2">
-            <a class="btn btn-outline-secondary" asp-page="./Index">К доске</a>
-            <form method="post">
-                <button type="submit" class="btn btn-primary" @(Model.CanStart ? null : "disabled")>Начать</button>
-            </form>
-        </div>
-        @if (!Model.CanStart && !string.IsNullOrEmpty(Model.LockReason))
-        {
-            <p class="text-muted mt-2">@Model.LockReason</p>
-        }
-    </div>
-    <div class="col-md-4 text-center">
+<div class="player-page quest-details">
+    <div class="text-center mb-3">
         @if (!string.IsNullOrEmpty(Model.Quest.IconPath))
         {
-            <img src="@Model.Quest.IconPath" alt="@Model.Quest.Title" class="quest-icon-lg" />
+            <img src="@Model.Quest.IconPath" alt="" class="quest-icon-lg" />
+        }
+    </div>
+
+    <h1 class="page-title">@Model.Quest.Title</h1>
+    <p class="quest-details__desc">@Model.Quest.Description</p>
+
+    @if (Model.Requirements.Count > 0)
+    {
+        <div class="quest-reqs mb-3">
+            <div class="quest-reqs__label">Требования:</div>
+            <ul class="quest-reqs__list">
+            @foreach (var req in Model.Requirements)
+            {
+                <li class="@(req.IsMet ? "is-met" : "is-unmet")">
+                    <span class="quest-reqs__mark">@(req.IsMet ? "✓" : "○")</span>
+                    @req.Title
+                </li>
+            }
+            </ul>
+        </div>
+    }
+    else
+    {
+        <p class="text-muted">Стартовый квест — требования не нужны.</p>
+    }
+
+    @if (!Model.CanStart && !string.IsNullOrEmpty(Model.LockReason))
+    {
+        <div class="alert alert-secondary">@Model.LockReason</div>
+    }
+
+    <div class="action-stack">
+        <a class="btn btn-outline-secondary btn-touch" asp-page="./Index">К доске</a>
+        @if (Model.CanStart)
+        {
+            <form method="post">
+                <button type="submit" class="btn btn-primary btn-touch w-100">Начать</button>
+            </form>
         }
     </div>
 </div>

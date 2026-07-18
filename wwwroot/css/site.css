@@ -1,5 +1,6 @@
 html {
-  font-size: 14px;
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
 }
 
 @media (min-width: 768px) {
@@ -18,28 +19,185 @@ html {
 }
 
 body {
-  margin-bottom: 60px;
+  margin-bottom: 72px;
+}
+
+/* Player layout: narrower padded column on phones */
+.container-player {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+}
+
+body.role-admin .container-player {
+  max-width: 1100px;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (min-width: 576px) {
+  .page-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .w-sm-auto {
+    width: auto !important;
+  }
+}
+
+/* Touch-friendly controls for player UI */
+.btn-touch {
+  min-height: 48px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-link {
+  padding-top: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
+}
+
+.quest-board {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 576px) {
+  .quest-board {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.quest-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid #dee2e6;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.quest-card--open {
+  border-color: #0d6efd;
+}
+
+.quest-card--selected {
+  border-color: #ffc107;
+  background: #fffbeb;
+}
+
+.quest-card--locked {
+  border-color: #ced4da;
+}
+
+.quest-card__icon {
+  text-align: center;
+}
+
+.quest-card__title {
+  font-size: 1.15rem;
+  font-weight: 650;
+  margin: 0;
+}
+
+.quest-card__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+.quest-card__actions .btn,
+.quest-card__start {
+  width: 100%;
+}
+
+@media (min-width: 576px) {
+  .quest-card__actions {
+    flex-direction: row;
+  }
+
+  .quest-card__actions > * {
+    flex: 1;
+  }
+}
+
+.quest-reqs {
+  font-size: 0.95rem;
+}
+
+.quest-reqs__label {
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+.quest-reqs__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.quest-reqs__list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  line-height: 1.35;
+}
+
+.quest-reqs__list .is-met {
+  color: #198754;
+}
+
+.quest-reqs__list .is-unmet {
+  color: #6c757d;
+}
+
+.quest-reqs__mark {
+  flex: 0 0 auto;
+  width: 1.1rem;
+  text-align: center;
 }
 
 .quest-icon {
-  width: 96px;
-  height: 96px;
+  width: 88px;
+  height: 88px;
   object-fit: cover;
-  border-radius: 12px;
+  border-radius: 14px;
 }
 
 .quest-icon-lg {
-  width: 160px;
-  height: 160px;
+  width: 128px;
+  height: 128px;
   object-fit: cover;
-  border-radius: 16px;
+  border-radius: 18px;
 }
 
 .quest-icon-placeholder {
-  width: 96px;
-  height: 96px;
+  width: 88px;
+  height: 88px;
   margin: 0 auto;
-  border-radius: 12px;
+  border-radius: 14px;
   background: #e9ecef;
   display: flex;
   align-items: center;
@@ -50,7 +208,37 @@ body {
   text-transform: uppercase;
 }
 
+.quest-details__desc {
+  white-space: pre-wrap;
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+.action-stack {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.quest-body {
+  overflow-wrap: anywhere;
+}
+
 .quest-body img {
   max-width: 100%;
   height: auto;
+}
+
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  white-space: nowrap;
+  line-height: 60px;
+  font-size: 0.85rem;
+}
+
+/* Admin tables: keep usable on tablet, horizontal scroll on phone if needed */
+body.role-admin .table-responsive,
+body.role-admin table {
+  font-size: 0.95rem;
 }

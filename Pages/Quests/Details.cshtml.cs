@@ -11,7 +11,7 @@ namespace WaitingForTheSummer.Pages.Quests;
 public class DetailsModel(ApplicationDbContext db, IQuestAccessService questAccess, IRoundService roundService) : PageModel
 {
     public Quest? Quest { get; private set; }
-    public IReadOnlyList<string> RequiredTitles { get; private set; } = [];
+    public IReadOnlyList<QuestRequirementStatus> Requirements { get; private set; } = [];
     public bool CanStart { get; private set; }
     public string? LockReason { get; private set; }
 
@@ -25,16 +25,8 @@ public class DetailsModel(ApplicationDbContext db, IQuestAccessService questAcce
         if (Quest is null)
             return NotFound();
 
-        var requiredIds = Quest.Requirements.Select(r => r.RequiredQuestId).ToList();
-        RequiredTitles = await db.Quests
-            .AsNoTracking()
-            .Where(q => requiredIds.Contains(q.Id))
-            .OrderBy(q => q.SortOrder)
-            .Select(q => q.Title)
-            .ToListAsync(cancellationToken);
-
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        (CanStart, LockReason) = await questAccess.CanStartAsync(userId, id, cancellationToken);
+        (CanStart, LockReason, Requirements) = await questAccess.CanStartAsync(userId, id, cancellationToken);
         return Page();
     }
 
@@ -44,7 +36,7 @@ public class DetailsModel(ApplicationDbContext db, IQuestAccessService questAcce
         var (ok, error, _) = await roundService.TakeQuestAsync(userId, id, cancellationToken);
         if (!ok)
         {
-            TempData["StatusMessage"] = error;
+            TempData["StatusMessage"] = error ?? "Квест недоступен";
             return RedirectToPage("./Index");
         }
 

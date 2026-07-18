@@ -4,36 +4,26 @@
     ViewData["Title"] = "Вход";
 }
 
-<h1>@ViewData["Title"]</h1>
-<div class="row">
-    <div class="col-md-4">
-        <section>
-            <form id="account" method="post">
-                <h2>Войдите в аккаунт</h2>
-                <hr />
-                <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-                <div class="form-floating mb-3">
-                    <input asp-for="Input.UserName" class="form-control" autocomplete="username" aria-required="true" placeholder="Логин" />
-                    <label asp-for="Input.UserName">Логин</label>
-                    <span asp-validation-for="Input.UserName" class="text-danger"></span>
-                </div>
-                <div class="form-floating mb-3">
-                    <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Пароль" />
-                    <label asp-for="Input.Password">Пароль</label>
-                    <span asp-validation-for="Input.Password" class="text-danger"></span>
-                </div>
-                <div class="checkbox mb-3">
-                    <label asp-for="Input.RememberMe" class="form-label">
-                        <input class="form-check-input" asp-for="Input.RememberMe" />
-                        @Html.DisplayNameFor(m => m.Input.RememberMe)
-                    </label>
-                </div>
-                <div>
-                    <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">Войти</button>
-                </div>
-            </form>
-        </section>
-    </div>
+<div class="player-page" style="max-width: 420px; margin: 0 auto;">
+    <h1 class="page-title mb-3">@ViewData["Title"]</h1>
+    <form id="account" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+        <div class="mb-3">
+            <label asp-for="Input.UserName" class="form-label">Логин</label>
+            <input asp-for="Input.UserName" class="form-control form-control-lg" autocomplete="username" aria-required="true" />
+            <span asp-validation-for="Input.UserName" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Input.Password" class="form-label">Пароль</label>
+            <input asp-for="Input.Password" class="form-control form-control-lg" autocomplete="current-password" aria-required="true" />
+            <span asp-validation-for="Input.Password" class="text-danger"></span>
+        </div>
+        <div class="form-check mb-3">
+            <input class="form-check-input" asp-for="Input.RememberMe" />
+            <label asp-for="Input.RememberMe" class="form-check-label"></label>
+        </div>
+        <button id="login-submit" type="submit" class="btn btn-primary btn-touch w-100">Войти</button>
+    </form>
 </div>
 
 @section Scripts {

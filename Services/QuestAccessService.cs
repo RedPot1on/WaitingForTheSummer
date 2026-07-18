@@ -16,6 +16,11 @@ public sealed class QuestAccessService(ApplicationDbContext db) : IQuestAccessSe
             .ThenBy(q => q.Id)
             .ToListAsync(cancellationToken);
 
+        var titles = await db.Quests
+            .AsNoTracking()
+            .Select(q => new { q.Id, q.Title })
+            .ToDictionaryAsync(q => q.Id, q => q.Title, cancellationToken);
+
         var succeededQuestIds = await db.Rounds
             .AsNoTracking()
             .Where(r => r.UserId == userId && r.Status == RoundStatus.Succeeded)
@@ -42,11 +47,17 @@ public sealed class QuestAccessService(ApplicationDbContext db) : IQuestAccessSe
 
         foreach (var quest in quests)
         {
-            var onceCompleted = quest.IsOnceOnly && succeeded.Contains(quest.Id);
-            var missing = quest.Requirements
-                .Where(r => !succeeded.Contains(r.RequiredQuestId))
-                .Select(r => r.RequiredQuestId)
+            var requirements = quest.Requirements
+                .OrderBy(r => r.RequiredQuestId)
+                .Select(r => new QuestRequirementStatus
+                {
+                    Title = titles.GetValueOrDefault(r.RequiredQuestId, $"Квест #{r.RequiredQuestId}"),
+                    IsMet = succeeded.Contains(r.RequiredQuestId)
+                })
                 .ToList();
+
+            var onceCompleted = quest.IsOnceOnly && succeeded.Contains(quest.Id);
+            var hasUnmet = requirements.Any(r => !r.IsMet);
             var isSelected = takeInCurrent?.QuestId == quest.Id;
 
             string? reason = null;
@@ -58,10 +69,14 @@ public sealed class QuestAccessService(ApplicationDbContext db) : IQuestAccessSe
                 reason = "Квест уже выбран в этом раунде";
             else if (onceCompleted)
                 reason = "Квест можно пройти только один раз";
-            else if (missing.Count > 0)
-                reason = "Не выполнены требования";
+            else if (hasUnmet)
+                reason = null; // показываем список требований вместо текста
 
-            var canStart = reason is null;
+            var canStart = activeGameRound is not null
+                && takeInCurrent is null
+                && !onceCompleted
+                && !hasUnmet;
+
             items.Add(new QuestBoardItem
             {
                 Quest = quest,
@@ -69,14 +84,16 @@ public sealed class QuestAccessService(ApplicationDbContext db) : IQuestAccessSe
                 IsLocked = !canStart,
                 IsOnceCompleted = onceCompleted,
                 IsSelectedInCurrentRound = isSelected,
-                LockReason = reason
+                HasUnmetRequirements = hasUnmet,
+                LockReason = reason,
+                Requirements = requirements
             });
         }
 
         return items;
     }
 
-    public async Task<(bool CanStart, string? Reason)> CanStartAsync(
+    public async Task<(bool CanStart, string? Reason, IReadOnlyList<QuestRequirementStatus> Requirements)> CanStartAsync(
         string userId,
         int questId,
         CancellationToken cancellationToken = default)
@@ -87,21 +104,12 @@ public sealed class QuestAccessService(ApplicationDbContext db) : IQuestAccessSe
             .FirstOrDefaultAsync(q => q.Id == questId, cancellationToken);
 
         if (quest is null || !quest.IsPublished)
-            return (false, "Квест недоступен");
+            return (false, "Квест недоступен", []);
 
-        var activeGameRound = await db.GameRounds
+        var titles = await db.Quests
             .AsNoTracking()
-            .FirstOrDefaultAsync(g => g.Status == GameRoundStatus.Active, cancellationToken);
-
-        if (activeGameRound is null)
-            return (false, "Раунд ещё не начат");
-
-        var alreadyTook = await db.Rounds.AnyAsync(
-            r => r.GameRoundId == activeGameRound.Id && r.UserId == userId,
-            cancellationToken);
-
-        if (alreadyTook)
-            return (false, "В этом раунде вы уже взяли квест");
+            .Where(q => quest.Requirements.Select(r => r.RequiredQuestId).Contains(q.Id))
+            .ToDictionaryAsync(q => q.Id, q => q.Title, cancellationToken);
 
         var succeeded = await db.Rounds
             .AsNoTracking()
@@ -112,12 +120,35 @@ public sealed class QuestAccessService(ApplicationDbContext db) : IQuestAccessSe
 
         var succeededSet = succeeded.ToHashSet();
 
+        var requirements = quest.Requirements
+            .OrderBy(r => r.RequiredQuestId)
+            .Select(r => new QuestRequirementStatus
+            {
+                Title = titles.GetValueOrDefault(r.RequiredQuestId, $"Квест #{r.RequiredQuestId}"),
+                IsMet = succeededSet.Contains(r.RequiredQuestId)
+            })
+            .ToList();
+
+        var activeGameRound = await db.GameRounds
+            .AsNoTracking()
+            .FirstOrDefaultAsync(g => g.Status == GameRoundStatus.Active, cancellationToken);
+
+        if (activeGameRound is null)
+            return (false, "Раунд ещё не начат", requirements);
+
+        var alreadyTook = await db.Rounds.AnyAsync(
+            r => r.GameRoundId == activeGameRound.Id && r.UserId == userId,
+            cancellationToken);
+
+        if (alreadyTook)
+            return (false, "В этом раунде вы уже взяли квест", requirements);
+
         if (quest.IsOnceOnly && succeededSet.Contains(quest.Id))
-            return (false, "Квест можно пройти только один раз");
+            return (false, "Квест можно пройти только один раз", requirements);
 
-        if (quest.Requirements.Any(r => !succeededSet.Contains(r.RequiredQuestId)))
-            return (false, "Не выполнены требования");
+        if (requirements.Any(r => !r.IsMet))
+            return (false, null, requirements);
 
-        return (true, null);
+        return (true, null, requirements);
     }
 }

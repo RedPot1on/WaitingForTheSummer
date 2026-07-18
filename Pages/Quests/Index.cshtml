@@ -4,85 +4,104 @@
     ViewData["Title"] = "Квесты";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="mb-0">Доска квестов</h1>
-    @if (Model.HasTakenQuest)
-    {
-        <a class="btn btn-warning" asp-page="/Rounds/Current">Мой квест</a>
-    }
-</div>
-
-@if (Model.ActiveGameRound is null)
-{
-    <div class="alert alert-warning">Сейчас нет активного раунда. Ждите, пока администратор его начнёт.</div>
-}
-else
-{
-    <div class="alert alert-success">
-        Идёт раунд № @Model.ActiveGameRound.Number.
+<div class="player-page">
+    <div class="page-header mb-3">
+        <h1 class="page-title mb-2">Доска квестов</h1>
         @if (Model.HasTakenQuest)
         {
-            <span>Вы уже взяли квест — сменить его нельзя.</span>
-        }
-        else
-        {
-            <span>Можно взять один квест.</span>
+            <a class="btn btn-warning btn-touch w-100 w-sm-auto" asp-page="/Rounds/Current">Мой квест</a>
         }
     </div>
-}
 
-@if (!string.IsNullOrEmpty(Model.StatusMessage))
-{
-    <div class="alert alert-info">@Model.StatusMessage</div>
-}
+    @if (Model.ActiveGameRound is null)
+    {
+        <div class="alert alert-warning">Сейчас нет активного раунда. Ждите, пока администратор его начнёт.</div>
+    }
+    else
+    {
+        <div class="alert alert-success">
+            Идёт раунд № @Model.ActiveGameRound.Number.
+            @if (Model.HasTakenQuest)
+            {
+                <span>Вы уже взяли квест — сменить его нельзя.</span>
+            }
+            else
+            {
+                <span>Можно взять один квест.</span>
+            }
+        </div>
+    }
 
-<div class="row g-3">
-@foreach (var item in Model.Items)
-{
-    var quest = item.Quest;
-    <div class="col-12 col-sm-6 col-lg-4">
-        <div class="card h-100 @(item.IsSelectedInCurrentRound ? "border-warning" : item.IsLocked ? "border-secondary" : "border-primary")">
-            <div class="card-body d-flex flex-column">
-                <div class="text-center mb-3">
-                    @if (!string.IsNullOrEmpty(quest.IconPath))
-                    {
-                        <img src="@quest.IconPath" alt="@quest.Title" class="quest-icon" />
-                    }
-                    else
-                    {
-                        <div class="quest-icon-placeholder">@quest.Title.FirstOrDefault()</div>
-                    }
-                </div>
-                <h2 class="h5 card-title">@quest.Title</h2>
-                @if (item.IsSelectedInCurrentRound)
+    @if (!string.IsNullOrEmpty(Model.StatusMessage))
+    {
+        <div class="alert alert-info">@Model.StatusMessage</div>
+    }
+
+    <div class="quest-board">
+    @foreach (var item in Model.Items)
+    {
+        var quest = item.Quest;
+        <article class="quest-card @(item.IsSelectedInCurrentRound ? "quest-card--selected" : item.CanStart ? "quest-card--open" : "quest-card--locked")">
+            <div class="quest-card__icon">
+                @if (!string.IsNullOrEmpty(quest.IconPath))
                 {
-                    <span class="badge text-bg-warning mb-2 align-self-start">Ваш выбор в раунде</span>
-                }
-                else if (item.IsOnceCompleted)
-                {
-                    <span class="badge text-bg-secondary mb-2 align-self-start">Пройден (один раз)</span>
-                }
-                else if (item.IsLocked)
-                {
-                    <span class="badge text-bg-light text-dark border mb-2 align-self-start">@item.LockReason</span>
+                    <img src="@quest.IconPath" alt="" class="quest-icon" />
                 }
                 else
                 {
-                    <span class="badge text-bg-success mb-2 align-self-start">Доступен</span>
+                    <div class="quest-icon-placeholder">@quest.Title.FirstOrDefault()</div>
                 }
-                <div class="mt-auto d-flex gap-2">
-                    <a class="btn btn-outline-secondary flex-fill" asp-page="./Details" asp-route-id="@quest.Id">Описание</a>
-                    <form method="post" asp-page-handler="Start" asp-route-id="@quest.Id" class="flex-fill">
-                        <button type="submit" class="btn btn-primary w-100" @(item.CanStart ? null : "disabled")>Начать</button>
-                    </form>
-                </div>
             </div>
-        </div>
-    </div>
-}
-</div>
+            <h2 class="quest-card__title">@quest.Title</h2>
 
-@if (Model.Items.Count == 0)
-{
-    <p class="text-muted">Пока нет опубликованных квестов.</p>
-}
+            @if (item.IsSelectedInCurrentRound)
+            {
+                <span class="badge text-bg-warning align-self-start">Ваш выбор в раунде</span>
+            }
+            else if (item.IsOnceCompleted)
+            {
+                <span class="badge text-bg-secondary align-self-start">Пройден (один раз)</span>
+            }
+            else if (item.CanStart)
+            {
+                <span class="badge text-bg-success align-self-start">Доступен</span>
+            }
+            else if (!string.IsNullOrEmpty(item.LockReason))
+            {
+                <span class="badge text-bg-light text-dark border align-self-start">@item.LockReason</span>
+            }
+
+            @if (item.Requirements.Count > 0)
+            {
+                <div class="quest-reqs">
+                    <div class="quest-reqs__label">Требования:</div>
+                    <ul class="quest-reqs__list">
+                    @foreach (var req in item.Requirements)
+                    {
+                        <li class="@(req.IsMet ? "is-met" : "is-unmet")">
+                            <span class="quest-reqs__mark">@(req.IsMet ? "✓" : "○")</span>
+                            @req.Title
+                        </li>
+                    }
+                    </ul>
+                </div>
+            }
+
+            <div class="quest-card__actions">
+                <a class="btn btn-outline-secondary btn-touch" asp-page="./Details" asp-route-id="@quest.Id">Описание</a>
+                @if (item.CanStart)
+                {
+                    <form method="post" asp-page-handler="Start" asp-route-id="@quest.Id" class="quest-card__start">
+                        <button type="submit" class="btn btn-primary btn-touch w-100">Начать</button>
+                    </form>
+                }
+            </div>
+        </article>
+    }
+    </div>
+
+    @if (Model.Items.Count == 0)
+    {
+        <p class="text-muted">Пока нет опубликованных квестов.</p>
+    }
+</div>
