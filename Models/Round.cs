@@ -3,9 +3,13 @@ using Microsoft.AspNetCore.Identity;
 
 namespace WaitingForTheSummer.Models;
 
+/// <summary>Выбор квеста игроком внутри раунда (не больше одного на раунд).</summary>
 public class Round
 {
     public int Id { get; set; }
+
+    public int GameRoundId { get; set; }
+    public GameRound GameRound { get; set; } = null!;
 
     [Required]
     public string UserId { get; set; } = string.Empty;

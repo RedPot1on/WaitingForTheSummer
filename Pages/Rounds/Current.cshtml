@@ -1,31 +1,53 @@
 @page
 @model WaitingForTheSummer.Pages.Rounds.CurrentModel
 @{
-    ViewData["Title"] = "Текущий раунд";
+    ViewData["Title"] = "Мой квест";
 }
 
 @if (Model.Round is null)
 {
     <div class="alert alert-secondary">
-        Сейчас нет активного раунда.
+        @if (Model.ActiveGameRound is null)
+        {
+            <span>Сейчас нет активного раунда.</span>
+        }
+        else
+        {
+            <span>Раунд № @Model.ActiveGameRound.Number идёт, но вы ещё не взяли квест.</span>
+        }
         <a asp-page="/Quests/Index">К доске квестов</a>
     </div>
 }
 else
 {
     <div class="mb-3">
-        <span class="badge text-bg-warning">Раунд в процессе</span>
+        <span class="badge text-bg-warning">Раунд № @Model.Round.GameRound.Number</span>
+        @if (Model.Round.Status == WaitingForTheSummer.Models.RoundStatus.InProgress)
+        {
+            <span class="badge text-bg-primary">Ожидает решения</span>
+        }
+        else if (Model.Round.Status == WaitingForTheSummer.Models.RoundStatus.Succeeded)
+        {
+            <span class="badge text-bg-success">Успех</span>
+        }
+        else
+        {
+            <span class="badge text-bg-danger">Провал</span>
+        }
     </div>
     <h1>@Model.Round.Quest.Title</h1>
-    <p class="text-muted">Начат: @Model.Round.StartedAt.ToLocalTime().ToString("g")</p>
+    <p class="text-muted">Взят: @Model.Round.StartedAt.ToLocalTime().ToString("g")</p>
 
     <div class="quest-body border rounded p-3 mb-4">
         @Html.Raw(Model.Round.Quest.BodyContent)
     </div>
 
-    <div class="alert alert-info">
-        Ожидайте решения администратора (успех или провал). Пока раунд активен, другой квест выбрать нельзя.
-    </div>
+    @if (Model.Round.Status == WaitingForTheSummer.Models.RoundStatus.InProgress)
+    {
+        <div class="alert alert-info">
+            Квест зафиксирован на этот раунд — сменить его нельзя. Ожидайте решения администратора.
+        </div>
+    }
 
     <a class="btn btn-outline-secondary" asp-page="/Quests/Index">К доске</a>
 }

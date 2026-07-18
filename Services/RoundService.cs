@@ -6,14 +6,79 @@ namespace WaitingForTheSummer.Services;
 
 public sealed class RoundService(ApplicationDbContext db, IQuestAccessService questAccess) : IRoundService
 {
-    public Task<Round?> GetActiveRoundAsync(string userId, CancellationToken cancellationToken = default) =>
-        db.Rounds
-            .Include(r => r.Quest)
-            .FirstOrDefaultAsync(
-                r => r.UserId == userId && r.Status == RoundStatus.InProgress,
-                cancellationToken);
+    public Task<GameRound?> GetActiveGameRoundAsync(CancellationToken cancellationToken = default) =>
+        db.GameRounds.FirstOrDefaultAsync(g => g.Status == GameRoundStatus.Active, cancellationToken);
 
-    public async Task<(bool Ok, string? Error, Round? Round)> StartAsync(
+    public async Task<(bool Ok, string? Error, GameRound? GameRound)> StartGameRoundAsync(
+        string adminUserId,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(adminUserId))
+            return (false, "Сессия недействительна. Выйдите и войдите снова.", null);
+
+        var adminExists = await db.Users.AnyAsync(u => u.Id == adminUserId, cancellationToken);
+        if (!adminExists)
+            return (false, "Сессия устарела (пользователь не найден). Выйдите и войдите снова.", null);
+
+        if (await db.GameRounds.AnyAsync(g => g.Status == GameRoundStatus.Active, cancellationToken))
+            return (false, "Уже есть активный раунд. Сначала закройте его.", null);
+
+        var nextNumber = await db.GameRounds.AnyAsync(cancellationToken)
+            ? await db.GameRounds.MaxAsync(g => g.Number, cancellationToken) + 1
+            : 1;
+
+        var gameRound = new GameRound
+        {
+            Number = nextNumber,
+            Status = GameRoundStatus.Active,
+            StartedAt = DateTime.UtcNow,
+            StartedByAdminId = adminUserId
+        };
+
+        db.GameRounds.Add(gameRound);
+        await db.SaveChangesAsync(cancellationToken);
+        return (true, null, gameRound);
+    }
+
+    public async Task<(bool Ok, string? Error)> CloseGameRoundAsync(
+        string adminUserId,
+        CancellationToken cancellationToken = default)
+    {
+        var active = await GetActiveGameRoundAsync(cancellationToken);
+        if (active is null)
+            return (false, "Нет активного раунда");
+
+        var unresolved = await db.Rounds.CountAsync(
+            r => r.GameRoundId == active.Id && r.Status == RoundStatus.InProgress,
+            cancellationToken);
+
+        if (unresolved > 0)
+            return (false, $"Нельзя закрыть раунд: есть нерешённые взятия квестов ({unresolved}).");
+
+        active.Status = GameRoundStatus.Closed;
+        active.ClosedAt = DateTime.UtcNow;
+        active.ClosedByAdminId = adminUserId;
+        await db.SaveChangesAsync(cancellationToken);
+        return (true, null);
+    }
+
+    public async Task<Round?> GetPlayerTakeInActiveGameRoundAsync(
+        string userId,
+        CancellationToken cancellationToken = default)
+    {
+        var active = await GetActiveGameRoundAsync(cancellationToken);
+        if (active is null)
+            return null;
+
+        return await db.Rounds
+            .Include(r => r.Quest)
+            .Include(r => r.GameRound)
+            .FirstOrDefaultAsync(
+                r => r.GameRoundId == active.Id && r.UserId == userId,
+                cancellationToken);
+    }
+
+    public async Task<(bool Ok, string? Error, Round? Round)> TakeQuestAsync(
         string userId,
         int questId,
         CancellationToken cancellationToken = default)
@@ -22,8 +87,13 @@ public sealed class RoundService(ApplicationDbContext db, IQuestAccessService qu
         if (!canStart)
             return (false, reason, null);
 
+        var active = await GetActiveGameRoundAsync(cancellationToken);
+        if (active is null)
+            return (false, "Раунд ещё не начат", null);
+
         var round = new Round
         {
+            GameRoundId = active.Id,
             UserId = userId,
             QuestId = questId,
             Status = RoundStatus.InProgress,
@@ -31,8 +101,18 @@ public sealed class RoundService(ApplicationDbContext db, IQuestAccessService qu
         };
 
         db.Rounds.Add(round);
-        await db.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            await db.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            return (false, "В этом раунде вы уже взяли квест", null);
+        }
+
         await db.Entry(round).Reference(r => r.Quest).LoadAsync(cancellationToken);
+        await db.Entry(round).Reference(r => r.GameRound).LoadAsync(cancellationToken);
 
         return (true, null, round);
     }
@@ -44,14 +124,14 @@ public sealed class RoundService(ApplicationDbContext db, IQuestAccessService qu
         CancellationToken cancellationToken = default)
     {
         if (outcome is not (RoundStatus.Succeeded or RoundStatus.Failed))
-            return (false, "Некорректный исход раунда");
+            return (false, "Некорректный исход");
 
         var round = await db.Rounds.FirstOrDefaultAsync(r => r.Id == roundId, cancellationToken);
         if (round is null)
-            return (false, "Раунд не найден");
+            return (false, "Запись не найдена");
 
         if (round.Status != RoundStatus.InProgress)
-            return (false, "Раунд уже завершён");
+            return (false, "Исход уже выставлен");
 
         round.Status = outcome;
         round.ResolvedAt = DateTime.UtcNow;

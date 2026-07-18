@@ -23,9 +23,19 @@ public sealed class QuestAccessService(ApplicationDbContext db) : IQuestAccessSe
             .Distinct()
             .ToListAsync(cancellationToken);
 
-        var hasActiveRound = await db.Rounds
+        var activeGameRound = await db.GameRounds
             .AsNoTracking()
-            .AnyAsync(r => r.UserId == userId && r.Status == RoundStatus.InProgress, cancellationToken);
+            .FirstOrDefaultAsync(g => g.Status == GameRoundStatus.Active, cancellationToken);
+
+        Round? takeInCurrent = null;
+        if (activeGameRound is not null)
+        {
+            takeInCurrent = await db.Rounds
+                .AsNoTracking()
+                .FirstOrDefaultAsync(
+                    r => r.GameRoundId == activeGameRound.Id && r.UserId == userId,
+                    cancellationToken);
+        }
 
         var succeeded = succeededQuestIds.ToHashSet();
         var items = new List<QuestBoardItem>(quests.Count);
@@ -37,12 +47,17 @@ public sealed class QuestAccessService(ApplicationDbContext db) : IQuestAccessSe
                 .Where(r => !succeeded.Contains(r.RequiredQuestId))
                 .Select(r => r.RequiredQuestId)
                 .ToList();
+            var isSelected = takeInCurrent?.QuestId == quest.Id;
 
             string? reason = null;
-            if (onceCompleted)
+            if (activeGameRound is null)
+                reason = "Раунд ещё не начат";
+            else if (takeInCurrent is not null && !isSelected)
+                reason = "В этом раунде вы уже взяли другой квест";
+            else if (takeInCurrent is not null && isSelected)
+                reason = "Квест уже выбран в этом раунде";
+            else if (onceCompleted)
                 reason = "Квест можно пройти только один раз";
-            else if (hasActiveRound)
-                reason = "Сначала завершите текущий раунд";
             else if (missing.Count > 0)
                 reason = "Не выполнены требования";
 
@@ -53,6 +68,7 @@ public sealed class QuestAccessService(ApplicationDbContext db) : IQuestAccessSe
                 CanStart = canStart,
                 IsLocked = !canStart,
                 IsOnceCompleted = onceCompleted,
+                IsSelectedInCurrentRound = isSelected,
                 LockReason = reason
             });
         }
@@ -73,10 +89,19 @@ public sealed class QuestAccessService(ApplicationDbContext db) : IQuestAccessSe
         if (quest is null || !quest.IsPublished)
             return (false, "Квест недоступен");
 
-        if (await db.Rounds.AnyAsync(
-                r => r.UserId == userId && r.Status == RoundStatus.InProgress,
-                cancellationToken))
-            return (false, "Сначала завершите текущий раунд");
+        var activeGameRound = await db.GameRounds
+            .AsNoTracking()
+            .FirstOrDefaultAsync(g => g.Status == GameRoundStatus.Active, cancellationToken);
+
+        if (activeGameRound is null)
+            return (false, "Раунд ещё не начат");
+
+        var alreadyTook = await db.Rounds.AnyAsync(
+            r => r.GameRoundId == activeGameRound.Id && r.UserId == userId,
+            cancellationToken);
+
+        if (alreadyTook)
+            return (false, "В этом раунде вы уже взяли квест");
 
         var succeeded = await db.Rounds
             .AsNoTracking()

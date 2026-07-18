@@ -8,6 +8,7 @@ public sealed class QuestBoardItem
     public bool CanStart { get; init; }
     public bool IsLocked { get; init; }
     public bool IsOnceCompleted { get; init; }
+    public bool IsSelectedInCurrentRound { get; init; }
     public string? LockReason { get; init; }
 }
 
@@ -19,7 +20,11 @@ public interface IQuestAccessService
 
 public interface IRoundService
 {
-    Task<Round?> GetActiveRoundAsync(string userId, CancellationToken cancellationToken = default);
-    Task<(bool Ok, string? Error, Round? Round)> StartAsync(string userId, int questId, CancellationToken cancellationToken = default);
+    Task<GameRound?> GetActiveGameRoundAsync(CancellationToken cancellationToken = default);
+    Task<(bool Ok, string? Error, GameRound? GameRound)> StartGameRoundAsync(string adminUserId, CancellationToken cancellationToken = default);
+    Task<(bool Ok, string? Error)> CloseGameRoundAsync(string adminUserId, CancellationToken cancellationToken = default);
+
+    Task<Round?> GetPlayerTakeInActiveGameRoundAsync(string userId, CancellationToken cancellationToken = default);
+    Task<(bool Ok, string? Error, Round? Round)> TakeQuestAsync(string userId, int questId, CancellationToken cancellationToken = default);
     Task<(bool Ok, string? Error)> ResolveAsync(int roundId, RoundStatus outcome, string adminUserId, CancellationToken cancellationToken = default);
 }

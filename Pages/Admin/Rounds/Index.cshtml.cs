@@ -10,24 +10,63 @@ namespace WaitingForTheSummer.Pages.Admin.Rounds;
 
 public class IndexModel(ApplicationDbContext db, IRoundService roundService) : PageModel
 {
-    public record RoundRow(
+    public record TakeRow(
         int Id,
         string? UserName,
         string QuestTitle,
         RoundStatus Status,
-        DateTime StartedAt,
-        DateTime? ResolvedAt);
+        DateTime StartedAt);
 
-    public IReadOnlyList<RoundRow> Active { get; private set; } = [];
-    public IReadOnlyList<RoundRow> History { get; private set; } = [];
+    public GameRound? ActiveGameRound { get; private set; }
+    public IReadOnlyList<TakeRow> ActiveTakes { get; private set; } = [];
+    public IReadOnlyList<GameRound> PastGameRounds { get; private set; } = [];
     public string? StatusMessage { get; private set; }
 
     public async Task OnGetAsync(CancellationToken cancellationToken)
     {
         StatusMessage = TempData["StatusMessage"] as string;
-        var rows = await LoadRowsAsync(cancellationToken);
-        Active = rows.Where(r => r.Status == RoundStatus.InProgress).ToList();
-        History = rows.Where(r => r.Status != RoundStatus.InProgress).Take(50).ToList();
+        ActiveGameRound = await roundService.GetActiveGameRoundAsync(cancellationToken);
+
+        if (ActiveGameRound is not null)
+        {
+            ActiveTakes = await db.Rounds
+                .AsNoTracking()
+                .Include(r => r.User)
+                .Include(r => r.Quest)
+                .Where(r => r.GameRoundId == ActiveGameRound.Id)
+                .OrderBy(r => r.StartedAt)
+                .Select(r => new TakeRow(
+                    r.Id,
+                    r.User.UserName,
+                    r.Quest.Title,
+                    r.Status,
+                    r.StartedAt))
+                .ToListAsync(cancellationToken);
+        }
+
+        PastGameRounds = await db.GameRounds
+            .AsNoTracking()
+            .OrderByDescending(g => g.Number)
+            .Take(20)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IActionResult> OnPostStartAsync(CancellationToken cancellationToken)
+    {
+        var adminId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var (ok, error, gameRound) = await roundService.StartGameRoundAsync(adminId, cancellationToken);
+        TempData["StatusMessage"] = ok
+            ? $"Раунд № {gameRound!.Number} начат."
+            : error;
+        return RedirectToPage();
+    }
+
+    public async Task<IActionResult> OnPostCloseAsync(CancellationToken cancellationToken)
+    {
+        var adminId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var (ok, error) = await roundService.CloseGameRoundAsync(adminId, cancellationToken);
+        TempData["StatusMessage"] = ok ? "Раунд закрыт." : error;
+        return RedirectToPage();
     }
 
     public async Task<IActionResult> OnPostResolveAsync(
@@ -37,24 +76,15 @@ public class IndexModel(ApplicationDbContext db, IRoundService roundService) : P
     {
         var adminId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var (ok, error) = await roundService.ResolveAsync(roundId, outcome, adminId, cancellationToken);
-        TempData["StatusMessage"] = ok ? "Раунд обновлён." : error;
+        TempData["StatusMessage"] = ok ? "Исход сохранён." : error;
         return RedirectToPage();
     }
 
-    private async Task<List<RoundRow>> LoadRowsAsync(CancellationToken cancellationToken)
+    public string StatusLabel(RoundStatus status) => status switch
     {
-        return await db.Rounds
-            .AsNoTracking()
-            .Include(r => r.User)
-            .Include(r => r.Quest)
-            .OrderByDescending(r => r.StartedAt)
-            .Select(r => new RoundRow(
-                r.Id,
-                r.User.UserName,
-                r.Quest.Title,
-                r.Status,
-                r.StartedAt,
-                r.ResolvedAt))
-            .ToListAsync(cancellationToken);
-    }
+        RoundStatus.InProgress => "Ожидает",
+        RoundStatus.Succeeded => "Успех",
+        RoundStatus.Failed => "Провал",
+        _ => status.ToString()
+    };
 }

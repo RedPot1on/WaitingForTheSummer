@@ -11,10 +11,32 @@
     <div class="alert alert-info">@Model.StatusMessage</div>
 }
 
-<h2 class="h4 mt-4">Активные</h2>
-@if (Model.Active.Count == 0)
+<div class="card mb-4">
+    <div class="card-body">
+        @if (Model.ActiveGameRound is null)
+        {
+            <p class="mb-3">Активного раунда нет. Игроки не могут брать квесты.</p>
+            <form method="post" asp-page-handler="Start">
+                <button type="submit" class="btn btn-primary">Начать раунд</button>
+            </form>
+        }
+        else
+        {
+            <p class="mb-1"><strong>Активный раунд № @Model.ActiveGameRound.Number</strong></p>
+            <p class="text-muted mb-3">Стартовал: @Model.ActiveGameRound.StartedAt.ToLocalTime().ToString("g")</p>
+            <form method="post" asp-page-handler="Close"
+                  onsubmit="return confirm('Закрыть раунд № @Model.ActiveGameRound.Number?');">
+                <button type="submit" class="btn btn-outline-danger">Закрыть раунд</button>
+            </form>
+            <div class="form-text mt-2">Закрыть можно только когда у всех взятых квестов выставлен успех или провал.</div>
+        }
+    </div>
+</div>
+
+<h2 class="h4">Взятия квестов @(Model.ActiveGameRound is null ? "" : $"раунда № {Model.ActiveGameRound.Number}")</h2>
+@if (Model.ActiveTakes.Count == 0)
 {
-    <p class="text-muted">Нет активных раундов.</p>
+    <p class="text-muted">Пока никто не взял квест.</p>
 }
 else
 {
@@ -23,28 +45,33 @@ else
             <tr>
                 <th>Игрок</th>
                 <th>Квест</th>
-                <th>Начат</th>
+                <th>Статус</th>
+                <th>Взят</th>
                 <th></th>
             </tr>
         </thead>
         <tbody>
-        @foreach (var r in Model.Active)
+        @foreach (var r in Model.ActiveTakes)
         {
             <tr>
                 <td>@r.UserName</td>
                 <td>@r.QuestTitle</td>
+                <td>@Model.StatusLabel(r.Status)</td>
                 <td>@r.StartedAt.ToLocalTime().ToString("g")</td>
                 <td class="text-end">
-                    <form method="post" asp-page-handler="Resolve" class="d-inline">
-                        <input type="hidden" name="roundId" value="@r.Id" />
-                        <input type="hidden" name="outcome" value="Succeeded" />
-                        <button type="submit" class="btn btn-sm btn-success">Успех</button>
-                    </form>
-                    <form method="post" asp-page-handler="Resolve" class="d-inline">
-                        <input type="hidden" name="roundId" value="@r.Id" />
-                        <input type="hidden" name="outcome" value="Failed" />
-                        <button type="submit" class="btn btn-sm btn-outline-danger">Провал</button>
-                    </form>
+                    @if (r.Status == WaitingForTheSummer.Models.RoundStatus.InProgress)
+                    {
+                        <form method="post" asp-page-handler="Resolve" class="d-inline">
+                            <input type="hidden" name="roundId" value="@r.Id" />
+                            <input type="hidden" name="outcome" value="Succeeded" />
+                            <button type="submit" class="btn btn-sm btn-success">Успех</button>
+                        </form>
+                        <form method="post" asp-page-handler="Resolve" class="d-inline">
+                            <input type="hidden" name="roundId" value="@r.Id" />
+                            <input type="hidden" name="outcome" value="Failed" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Провал</button>
+                        </form>
+                    }
                 </td>
             </tr>
         }
@@ -52,27 +79,34 @@ else
     </table>
 }
 
-<h2 class="h4 mt-4">История</h2>
-<table class="table table-sm">
-    <thead>
-        <tr>
-            <th>Игрок</th>
-            <th>Квест</th>
-            <th>Статус</th>
-            <th>Завершён</th>
-        </tr>
-    </thead>
-    <tbody>
-    @foreach (var r in Model.History)
-    {
-        <tr>
-            <td>@r.UserName</td>
-            <td>@r.QuestTitle</td>
-            <td>@r.Status</td>
-            <td>@(r.ResolvedAt?.ToLocalTime().ToString("g") ?? "—")</td>
-        </tr>
-    }
-    </tbody>
-</table>
+<h2 class="h4 mt-4">История раундов</h2>
+@if (Model.PastGameRounds.Count == 0)
+{
+    <p class="text-muted">Пока пусто.</p>
+}
+else
+{
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th>№</th>
+                <th>Статус</th>
+                <th>Старт</th>
+                <th>Закрыт</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var g in Model.PastGameRounds)
+        {
+            <tr>
+                <td>@g.Number</td>
+                <td>@(g.Status == WaitingForTheSummer.Models.GameRoundStatus.Active ? "Активен" : "Закрыт")</td>
+                <td>@g.StartedAt.ToLocalTime().ToString("g")</td>
+                <td>@(g.ClosedAt?.ToLocalTime().ToString("g") ?? "—")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
 
 <a asp-page="../Index">← Назад</a>

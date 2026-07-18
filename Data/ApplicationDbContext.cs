@@ -13,6 +13,7 @@ public class ApplicationDbContext : IdentityDbContext
 
     public DbSet<Quest> Quests => Set<Quest>();
     public DbSet<QuestRequirement> QuestRequirements => Set<QuestRequirement>();
+    public DbSet<GameRound> GameRounds => Set<GameRound>();
     public DbSet<Round> Rounds => Set<Round>();
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -34,9 +35,31 @@ public class ApplicationDbContext : IdentityDbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
+        builder.Entity<GameRound>(entity =>
+        {
+            entity.HasIndex(x => x.Status);
+            entity.HasIndex(x => x.Number).IsUnique();
+
+            entity.HasOne(x => x.StartedByAdmin)
+                .WithMany()
+                .HasForeignKey(x => x.StartedByAdminId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(x => x.ClosedByAdmin)
+                .WithMany()
+                .HasForeignKey(x => x.ClosedByAdminId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
         builder.Entity<Round>(entity =>
         {
+            entity.HasIndex(x => new { x.GameRoundId, x.UserId }).IsUnique();
             entity.HasIndex(x => new { x.UserId, x.Status });
+
+            entity.HasOne(x => x.GameRound)
+                .WithMany(x => x.QuestTakes)
+                .HasForeignKey(x => x.GameRoundId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasOne(x => x.User)
                 .WithMany()

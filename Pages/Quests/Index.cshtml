@@ -4,13 +4,32 @@
     ViewData["Title"] = "Квесты";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="mb-0">Доска квестов</h1>
-    @if (Model.HasActiveRound)
+    @if (Model.HasTakenQuest)
     {
-        <a class="btn btn-warning" asp-page="/Rounds/Current">Открыть текущий раунд</a>
+        <a class="btn btn-warning" asp-page="/Rounds/Current">Мой квест</a>
     }
 </div>
+
+@if (Model.ActiveGameRound is null)
+{
+    <div class="alert alert-warning">Сейчас нет активного раунда. Ждите, пока администратор его начнёт.</div>
+}
+else
+{
+    <div class="alert alert-success">
+        Идёт раунд № @Model.ActiveGameRound.Number.
+        @if (Model.HasTakenQuest)
+        {
+            <span>Вы уже взяли квест — сменить его нельзя.</span>
+        }
+        else
+        {
+            <span>Можно взять один квест.</span>
+        }
+    </div>
+}
 
 @if (!string.IsNullOrEmpty(Model.StatusMessage))
 {
@@ -22,7 +41,7 @@
 {
     var quest = item.Quest;
     <div class="col-12 col-sm-6 col-lg-4">
-        <div class="card h-100 @(item.IsLocked ? "border-secondary" : "border-primary")">
+        <div class="card h-100 @(item.IsSelectedInCurrentRound ? "border-warning" : item.IsLocked ? "border-secondary" : "border-primary")">
             <div class="card-body d-flex flex-column">
                 <div class="text-center mb-3">
                     @if (!string.IsNullOrEmpty(quest.IconPath))
@@ -35,7 +54,11 @@
                     }
                 </div>
                 <h2 class="h5 card-title">@quest.Title</h2>
-                @if (item.IsOnceCompleted)
+                @if (item.IsSelectedInCurrentRound)
+                {
+                    <span class="badge text-bg-warning mb-2 align-self-start">Ваш выбор в раунде</span>
+                }
+                else if (item.IsOnceCompleted)
                 {
                     <span class="badge text-bg-secondary mb-2 align-self-start">Пройден (один раз)</span>
                 }

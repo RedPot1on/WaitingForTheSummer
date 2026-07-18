@@ -4,12 +4,14 @@
     ViewData["Title"] = "Ошибка";
 }
 
-<h1 class="text-danger">Ошибка</h1>
-<h2 class="text-danger">При обработке запроса произошла ошибка.</h2>
+<h1 class="text-danger">Что-то пошло не так</h1>
+<p>Произошла ошибка. Подробности записаны в лог — покажите администратору код запроса ниже.</p>
 
 @if (Model.ShowRequestId)
 {
     <p>
-        <strong>Request ID:</strong> <code>@Model.RequestId</code>
+        <strong>Код запроса:</strong> <code>@Model.RequestId</code>
     </p>
 }
+
+<p><a asp-page="/Index">На главную</a></p>
