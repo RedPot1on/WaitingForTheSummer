@@ -1,0 +1,41 @@
+## .NET
+bin/
+obj/
+out/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.dbmdl
+*.jfm
+.vs/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+## SQLite / local DB
+*.db
+*.db-shm
+*.db-wal
+app.db
+
+## Secrets & env
+appsettings.*.local.json
+secrets.json
+.env
+.env.*
+
+## OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+*~
+
+## Uploads (keep folder, ignore files)
+wwwroot/uploads/*
+!wwwroot/uploads/.gitkeep
+
+## Logs
+*.log
+logs/
