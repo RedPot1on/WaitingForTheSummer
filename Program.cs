@@ -32,10 +32,13 @@ try
     builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
     builder.Services
-        .AddIdentity<IdentityUser, IdentityRole>(options =>
+        .AddIdentity<ApplicationUser, IdentityRole>(options =>
         {
             options.SignIn.RequireConfirmedAccount = false;
             options.User.RequireUniqueEmail = false;
+            options.User.AllowedUserNameCharacters =
+                "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@" +
+                "абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ";
             options.Password.RequiredLength = 6;
             options.Password.RequireNonAlphanumeric = false;
             options.Password.RequireUppercase = false;
@@ -71,7 +74,6 @@ try
 
     await DbSeeder.SeedAsync(app.Services);
 
-    // Всегда дружелюбная страница ошибки; стектрейс только в logs/
     app.UseExceptionHandler("/Error");
     if (!app.Environment.IsDevelopment())
         app.UseHsts();

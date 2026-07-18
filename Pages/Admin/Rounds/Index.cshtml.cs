@@ -20,6 +20,7 @@ public class IndexModel(ApplicationDbContext db, IRoundService roundService) : P
         DateTime StartedAt);
 
     public GameRound? ActiveGameRound { get; private set; }
+    public TeamPairScore? PendingBonus { get; private set; }
     public IReadOnlyList<TakeRow> ActiveTakes { get; private set; } = [];
     public IReadOnlyList<GameRound> PastGameRounds { get; private set; } = [];
     public string? StatusMessage { get; private set; }
@@ -28,6 +29,7 @@ public class IndexModel(ApplicationDbContext db, IRoundService roundService) : P
     {
         StatusMessage = TempData["StatusMessage"] as string;
         ActiveGameRound = await roundService.GetActiveGameRoundAsync(cancellationToken);
+        PendingBonus = await roundService.GetPendingBonusAsync(cancellationToken);
 
         if (ActiveGameRound is not null)
         {
@@ -55,12 +57,22 @@ public class IndexModel(ApplicationDbContext db, IRoundService roundService) : P
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<IActionResult> OnPostStartAsync(CancellationToken cancellationToken)
+    public async Task<IActionResult> OnPostStartRegularAsync(CancellationToken cancellationToken)
     {
         var adminId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        var (ok, error, gameRound) = await roundService.StartGameRoundAsync(adminId, cancellationToken);
+        var (ok, error, gameRound) = await roundService.StartRegularRoundAsync(adminId, cancellationToken);
         TempData["StatusMessage"] = ok
-            ? $"Раунд № {gameRound!.Number} начат."
+            ? $"Обычный раунд № {gameRound!.Number} начат."
+            : error;
+        return RedirectToPage();
+    }
+
+    public async Task<IActionResult> OnPostStartBonusAsync(CancellationToken cancellationToken)
+    {
+        var adminId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var (ok, error, gameRound) = await roundService.StartBonusRoundAsync(adminId, cancellationToken);
+        TempData["StatusMessage"] = ok
+            ? $"Бонусный раунд № {gameRound!.Number} начат для «{TeamNames.For(gameRound.EligibleTeam!.Value)}»."
             : error;
         return RedirectToPage();
     }
@@ -90,5 +102,13 @@ public class IndexModel(ApplicationDbContext db, IRoundService roundService) : P
         RoundStatus.Succeeded => "Успех",
         RoundStatus.Failed => "Провал",
         _ => status.ToString()
+    };
+
+    public string KindLabel(GameRound g) => g.Kind switch
+    {
+        GameRoundKind.Bonus => g.EligibleTeam is null
+            ? "Бонус"
+            : $"Бонус ({TeamNames.For(g.EligibleTeam.Value)})",
+        _ => "Обычный"
     };
 }

@@ -13,6 +13,7 @@ public class IndexModel(ApplicationDbContext db) : PageModel
         int Points,
         bool IsPublished,
         bool IsOnceOnly,
+        bool IsBonus,
         string RequirementSummary);
 
     public IReadOnlyList<QuestRow> Quests { get; private set; } = [];
@@ -38,6 +39,7 @@ public class IndexModel(ApplicationDbContext db) : PageModel
             q.Points,
             q.IsPublished,
             q.IsOnceOnly,
+            q.IsBonus,
             q.Requirements.Count == 0
                 ? "—"
                 : string.Join(", ", q.Requirements.Select(r =>

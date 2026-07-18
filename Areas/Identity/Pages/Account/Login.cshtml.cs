@@ -3,10 +3,11 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using WaitingForTheSummer.Models;
 
 namespace WaitingForTheSummer.Areas.Identity.Pages.Account;
 
-public class LoginModel(SignInManager<IdentityUser> signInManager, ILogger<LoginModel> logger) : PageModel
+public class LoginModel(SignInManager<ApplicationUser> signInManager, ILogger<LoginModel> logger) : PageModel
 {
     [BindProperty]
     public InputModel Input { get; set; } = new();

@@ -23,6 +23,9 @@ public class Quest
     /// <summary>После успешного прохождения нельзя начать снова.</summary>
     public bool IsOnceOnly { get; set; }
 
+    /// <summary>Бонусный квест — доступен только в бонусном раунде победившей команде.</summary>
+    public bool IsBonus { get; set; }
+
     /// <summary>Баллы за успешное прохождение (при провале — 0).</summary>
     [Range(0, int.MaxValue)]
     public int Points { get; set; }

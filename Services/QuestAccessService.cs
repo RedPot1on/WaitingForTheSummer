@@ -8,13 +8,35 @@ public sealed class QuestAccessService(ApplicationDbContext db) : IQuestAccessSe
 {
     public async Task<IReadOnlyList<QuestBoardItem>> GetBoardAsync(string userId, CancellationToken cancellationToken = default)
     {
+        var user = await db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+        if (user is null)
+            return [];
+
+        var activeGameRound = await db.GameRounds
+            .AsNoTracking()
+            .FirstOrDefaultAsync(g => g.Status == GameRoundStatus.Active, cancellationToken);
+
+        var wantBonus = activeGameRound?.Kind == GameRoundKind.Bonus;
+
         var quests = await db.Quests
             .AsNoTracking()
             .Include(q => q.Requirements)
-            .Where(q => q.IsPublished)
+            .Where(q => q.IsPublished && q.IsBonus == wantBonus)
             .OrderBy(q => q.SortOrder)
             .ThenBy(q => q.Id)
             .ToListAsync(cancellationToken);
+
+        // Если раунда нет — показываем обычные квесты (заблокированные)
+        if (activeGameRound is null)
+        {
+            quests = await db.Quests
+                .AsNoTracking()
+                .Include(q => q.Requirements)
+                .Where(q => q.IsPublished && !q.IsBonus)
+                .OrderBy(q => q.SortOrder)
+                .ThenBy(q => q.Id)
+                .ToListAsync(cancellationToken);
+        }
 
         var titles = await db.Quests
             .AsNoTracking()
@@ -28,10 +50,6 @@ public sealed class QuestAccessService(ApplicationDbContext db) : IQuestAccessSe
             .Distinct()
             .ToListAsync(cancellationToken);
 
-        var activeGameRound = await db.GameRounds
-            .AsNoTracking()
-            .FirstOrDefaultAsync(g => g.Status == GameRoundStatus.Active, cancellationToken);
-
         Round? takeInCurrent = null;
         if (activeGameRound is not null)
         {
@@ -41,6 +59,10 @@ public sealed class QuestAccessService(ApplicationDbContext db) : IQuestAccessSe
                     r => r.GameRoundId == activeGameRound.Id && r.UserId == userId,
                     cancellationToken);
         }
+
+        var teamAllowed = activeGameRound is null
+            || activeGameRound.Kind != GameRoundKind.Bonus
+            || activeGameRound.EligibleTeam == user.Gender;
 
         var succeeded = succeededQuestIds.ToHashSet();
         var items = new List<QuestBoardItem>(quests.Count);
@@ -63,6 +85,8 @@ public sealed class QuestAccessService(ApplicationDbContext db) : IQuestAccessSe
             string? reason = null;
             if (activeGameRound is null)
                 reason = "Раунд ещё не начат";
+            else if (!teamAllowed)
+                reason = "Бонусный раунд — ваша команда не участвует";
             else if (takeInCurrent is not null && !isSelected)
                 reason = "В этом раунде вы уже взяли другой квест";
             else if (takeInCurrent is not null && isSelected)
@@ -70,9 +94,10 @@ public sealed class QuestAccessService(ApplicationDbContext db) : IQuestAccessSe
             else if (onceCompleted)
                 reason = "Квест можно пройти только один раз";
             else if (hasUnmet)
-                reason = null; // показываем список требований вместо текста
+                reason = null;
 
             var canStart = activeGameRound is not null
+                && teamAllowed
                 && takeInCurrent is null
                 && !onceCompleted
                 && !hasUnmet;
@@ -98,6 +123,10 @@ public sealed class QuestAccessService(ApplicationDbContext db) : IQuestAccessSe
         int questId,
         CancellationToken cancellationToken = default)
     {
+        var user = await db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+        if (user is null)
+            return (false, "Пользователь не найден", []);
+
         var quest = await db.Quests
             .AsNoTracking()
             .Include(q => q.Requirements)
@@ -135,6 +164,18 @@ public sealed class QuestAccessService(ApplicationDbContext db) : IQuestAccessSe
 
         if (activeGameRound is null)
             return (false, "Раунд ещё не начат", requirements);
+
+        if (activeGameRound.Kind == GameRoundKind.Bonus)
+        {
+            if (!quest.IsBonus)
+                return (false, "В бонусном раунде доступны только бонусные квесты", requirements);
+            if (activeGameRound.EligibleTeam != user.Gender)
+                return (false, "Бонусный раунд — ваша команда не участвует", requirements);
+        }
+        else if (quest.IsBonus)
+        {
+            return (false, "Бонусный квест доступен только в бонусном раунде", requirements);
+        }
 
         var alreadyTook = await db.Rounds.AnyAsync(
             r => r.GameRoundId == activeGameRound.Id && r.UserId == userId,

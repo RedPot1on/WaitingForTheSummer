@@ -6,9 +6,9 @@ using WaitingForTheSummer.Models;
 
 namespace WaitingForTheSummer.Pages.Admin.Users;
 
-public class IndexModel(UserManager<IdentityUser> userManager) : PageModel
+public class IndexModel(UserManager<ApplicationUser> userManager) : PageModel
 {
-    public record UserRow(string Id, string? UserName, IReadOnlyList<string> Roles);
+    public record UserRow(string Id, string? UserName, IReadOnlyList<string> Roles, string Team);
 
     public IReadOnlyList<UserRow> Users { get; private set; } = [];
     public string? StatusMessage { get; private set; }
@@ -21,7 +21,8 @@ public class IndexModel(UserManager<IdentityUser> userManager) : PageModel
         foreach (var user in users)
         {
             var roles = await userManager.GetRolesAsync(user);
-            rows.Add(new UserRow(user.Id, user.UserName, roles.ToList()));
+            var team = roles.Contains(AppRoles.Player) ? TeamNames.For(user.Gender) : "—";
+            rows.Add(new UserRow(user.Id, user.UserName, roles.ToList(), team));
         }
 
         Users = rows;

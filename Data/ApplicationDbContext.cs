@@ -4,7 +4,7 @@ using WaitingForTheSummer.Models;
 
 namespace WaitingForTheSummer.Data;
 
-public class ApplicationDbContext : IdentityDbContext
+public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
@@ -39,6 +39,7 @@ public class ApplicationDbContext : IdentityDbContext
         {
             entity.HasIndex(x => x.Status);
             entity.HasIndex(x => x.Number).IsUnique();
+            entity.HasIndex(x => x.BonusForRegularPairEnd);
 
             entity.HasOne(x => x.StartedByAdmin)
                 .WithMany()

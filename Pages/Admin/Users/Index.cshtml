@@ -18,6 +18,7 @@
     <thead>
         <tr>
             <th>Логин</th>
+            <th>Команда</th>
             <th>Роли</th>
             <th></th>
         </tr>
@@ -27,6 +28,7 @@
     {
         <tr>
             <td>@u.UserName</td>
+            <td>@u.Team</td>
             <td>@string.Join(", ", u.Roles)</td>
             <td class="text-end">
                 @if (u.Roles.Contains(WaitingForTheSummer.Models.AppRoles.Player) && !u.Roles.Contains(WaitingForTheSummer.Models.AppRoles.Admin))

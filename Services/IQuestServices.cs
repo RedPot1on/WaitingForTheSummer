@@ -2,6 +2,15 @@ using WaitingForTheSummer.Models;
 
 namespace WaitingForTheSummer.Services;
 
+public sealed class TeamPairScore
+{
+    public int PairEndRegularNumber { get; init; }
+    public int MalePoints { get; init; }
+    public int FemalePoints { get; init; }
+    public Gender? WinnerTeam { get; init; }
+    public bool IsTie => WinnerTeam is null && (MalePoints > 0 || FemalePoints > 0 || MalePoints == FemalePoints);
+}
+
 public sealed class QuestRequirementStatus
 {
     public required string Title { get; init; }
@@ -32,11 +41,15 @@ public interface IQuestAccessService
 public interface IRoundService
 {
     Task<GameRound?> GetActiveGameRoundAsync(CancellationToken cancellationToken = default);
-    Task<(bool Ok, string? Error, GameRound? GameRound)> StartGameRoundAsync(string adminUserId, CancellationToken cancellationToken = default);
+    Task<(bool Ok, string? Error, GameRound? GameRound)> StartRegularRoundAsync(string adminUserId, CancellationToken cancellationToken = default);
+    Task<(bool Ok, string? Error, GameRound? GameRound)> StartBonusRoundAsync(string adminUserId, CancellationToken cancellationToken = default);
     Task<(bool Ok, string? Error)> CloseGameRoundAsync(string adminUserId, CancellationToken cancellationToken = default);
 
     Task<Round?> GetPlayerTakeInActiveGameRoundAsync(string userId, CancellationToken cancellationToken = default);
     Task<(bool Ok, string? Error, Round? Round)> TakeQuestAsync(string userId, int questId, CancellationToken cancellationToken = default);
     Task<(bool Ok, string? Error)> ResolveAsync(int roundId, RoundStatus outcome, string adminUserId, CancellationToken cancellationToken = default);
     Task<int> GetPlayerTotalPointsAsync(string userId, CancellationToken cancellationToken = default);
+
+    Task<TeamPairScore?> GetPendingBonusAsync(CancellationToken cancellationToken = default);
+    Task<TeamPairScore?> GetLatestClosedPairScoreAsync(CancellationToken cancellationToken = default);
 }

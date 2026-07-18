@@ -15,14 +15,51 @@
     <div class="card-body">
         @if (Model.ActiveGameRound is null)
         {
-            <p class="mb-3">Активного раунда нет. Игроки не могут брать квесты.</p>
-            <form method="post" asp-page-handler="Start">
-                <button type="submit" class="btn btn-primary">Начать раунд</button>
-            </form>
+            <p class="mb-3">Активного раунда нет.</p>
+
+            @if (Model.PendingBonus is not null)
+            {
+                <div class="alert alert-warning">
+                    Пара обычных раундов завершена.
+                    Парни: <strong>@Model.PendingBonus.MalePoints</strong>,
+                    девушки: <strong>@Model.PendingBonus.FemalePoints</strong>.
+                    @if (Model.PendingBonus.WinnerTeam is not null)
+                    {
+                        <div class="mt-1">
+                            Победитель: <strong>@WaitingForTheSummer.Models.TeamNames.For(Model.PendingBonus.WinnerTeam.Value)</strong> — нужен бонусный раунд.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="mt-1">Ничья — бонусный раунд не проводится, можно стартовать обычный.</div>
+                    }
+                </div>
+            }
+
+            <div class="d-flex flex-wrap gap-2">
+                <form method="post" asp-page-handler="StartRegular">
+                    <button type="submit" class="btn btn-primary">Начать обычный раунд</button>
+                </form>
+                <form method="post" asp-page-handler="StartBonus">
+                    <button type="submit" class="btn btn-warning"
+                            disabled="@(Model.PendingBonus?.WinnerTeam is null ? "disabled" : null)">
+                        Начать бонусный раунд
+                    </button>
+                </form>
+            </div>
         }
         else
         {
-            <p class="mb-1"><strong>Активный раунд № @Model.ActiveGameRound.Number</strong></p>
+            <p class="mb-1">
+                <strong>
+                    @(Model.ActiveGameRound.Kind == WaitingForTheSummer.Models.GameRoundKind.Bonus ? "Бонусный" : "Обычный")
+                    раунд № @Model.ActiveGameRound.Number
+                </strong>
+            </p>
+            @if (Model.ActiveGameRound.Kind == WaitingForTheSummer.Models.GameRoundKind.Bonus && Model.ActiveGameRound.EligibleTeam is not null)
+            {
+                <p class="mb-1">Участвует: <strong>@WaitingForTheSummer.Models.TeamNames.For(Model.ActiveGameRound.EligibleTeam.Value)</strong></p>
+            }
             <p class="text-muted mb-3">Стартовал: @Model.ActiveGameRound.StartedAt.ToLocalTime().ToString("g")</p>
             <form method="post" asp-page-handler="Close"
                   onsubmit="return confirm('Закрыть раунд № @Model.ActiveGameRound.Number?');">
@@ -40,54 +77,56 @@
 }
 else
 {
-    <table class="table table-striped align-middle">
-        <thead>
-            <tr>
-                <th>Игрок</th>
-                <th>Квест</th>
-                <th>Баллы</th>
-                <th>Статус</th>
-                <th>Взят</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-        @foreach (var r in Model.ActiveTakes)
-        {
-            <tr>
-                <td>@r.UserName</td>
-                <td>@r.QuestTitle</td>
-                <td>
-                    @if (r.Status == WaitingForTheSummer.Models.RoundStatus.InProgress)
-                    {
-                        <span>до @r.QuestPoints</span>
-                    }
-                    else
-                    {
-                        <span>@r.PointsAwarded</span>
-                    }
-                </td>
-                <td>@Model.StatusLabel(r.Status)</td>
-                <td>@r.StartedAt.ToLocalTime().ToString("g")</td>
-                <td class="text-end">
-                    @if (r.Status == WaitingForTheSummer.Models.RoundStatus.InProgress)
-                    {
-                        <form method="post" asp-page-handler="Resolve" class="d-inline">
-                            <input type="hidden" name="roundId" value="@r.Id" />
-                            <input type="hidden" name="outcome" value="Succeeded" />
-                            <button type="submit" class="btn btn-sm btn-success">Успех</button>
-                        </form>
-                        <form method="post" asp-page-handler="Resolve" class="d-inline">
-                            <input type="hidden" name="roundId" value="@r.Id" />
-                            <input type="hidden" name="outcome" value="Failed" />
-                            <button type="submit" class="btn btn-sm btn-outline-danger">Провал</button>
-                        </form>
-                    }
-                </td>
-            </tr>
-        }
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th>Игрок</th>
+                    <th>Квест</th>
+                    <th>Баллы</th>
+                    <th>Статус</th>
+                    <th>Взят</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var r in Model.ActiveTakes)
+            {
+                <tr>
+                    <td>@r.UserName</td>
+                    <td>@r.QuestTitle</td>
+                    <td>
+                        @if (r.Status == WaitingForTheSummer.Models.RoundStatus.InProgress)
+                        {
+                            <span>до @r.QuestPoints</span>
+                        }
+                        else
+                        {
+                            <span>@r.PointsAwarded</span>
+                        }
+                    </td>
+                    <td>@Model.StatusLabel(r.Status)</td>
+                    <td>@r.StartedAt.ToLocalTime().ToString("g")</td>
+                    <td class="text-end">
+                        @if (r.Status == WaitingForTheSummer.Models.RoundStatus.InProgress)
+                        {
+                            <form method="post" asp-page-handler="Resolve" class="d-inline">
+                                <input type="hidden" name="roundId" value="@r.Id" />
+                                <input type="hidden" name="outcome" value="Succeeded" />
+                                <button type="submit" class="btn btn-sm btn-success">Успех</button>
+                            </form>
+                            <form method="post" asp-page-handler="Resolve" class="d-inline">
+                                <input type="hidden" name="roundId" value="@r.Id" />
+                                <input type="hidden" name="outcome" value="Failed" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Провал</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
 }
 
 <h2 class="h4 mt-4">История раундов</h2>
@@ -101,6 +140,7 @@ else
         <thead>
             <tr>
                 <th>№</th>
+                <th>Тип</th>
                 <th>Статус</th>
                 <th>Старт</th>
                 <th>Закрыт</th>
@@ -111,6 +151,7 @@ else
         {
             <tr>
                 <td>@g.Number</td>
+                <td>@Model.KindLabel(g)</td>
                 <td>@(g.Status == WaitingForTheSummer.Models.GameRoundStatus.Active ? "Активен" : "Закрыт")</td>
                 <td>@g.StartedAt.ToLocalTime().ToString("g")</td>
                 <td>@(g.ClosedAt?.ToLocalTime().ToString("g") ?? "—")</td>

@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Identity;
 
 namespace WaitingForTheSummer.Models;
 
@@ -13,7 +12,7 @@ public class Round
 
     [Required]
     public string UserId { get; set; } = string.Empty;
-    public IdentityUser User { get; set; } = null!;
+    public ApplicationUser User { get; set; } = null!;
 
     public int QuestId { get; set; }
     public Quest Quest { get; set; } = null!;
@@ -28,5 +27,5 @@ public class Round
     public int PointsAwarded { get; set; }
 
     public string? ResolvedByAdminId { get; set; }
-    public IdentityUser? ResolvedByAdmin { get; set; }
+    public ApplicationUser? ResolvedByAdmin { get; set; }
 }

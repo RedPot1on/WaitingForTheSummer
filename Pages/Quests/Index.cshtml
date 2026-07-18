@@ -20,6 +20,20 @@
     {
         <div class="alert alert-warning">Сейчас нет активного раунда. Ждите, пока администратор его начнёт.</div>
     }
+    else if (Model.ActiveGameRound.Kind == WaitingForTheSummer.Models.GameRoundKind.Bonus)
+    {
+        <div class="alert alert-warning">
+            Бонусный раунд № @Model.ActiveGameRound.Number
+            @if (Model.ActiveGameRound.EligibleTeam is not null)
+            {
+                <span>— участвует @WaitingForTheSummer.Models.TeamNames.For(Model.ActiveGameRound.EligibleTeam.Value).</span>
+            }
+            @if (Model.HasTakenQuest)
+            {
+                <span>Вы уже взяли квест — сменить его нельзя.</span>
+            }
+        </div>
+    }
     else
     {
         <div class="alert alert-success">
@@ -56,7 +70,13 @@
                 }
             </div>
             <h2 class="quest-card__title">@quest.Title</h2>
-            <div class="quest-card__points">@quest.Points б.</div>
+            <div class="quest-card__points">
+                @quest.Points б.
+                @if (quest.IsBonus)
+                {
+                    <span class="badge text-bg-warning ms-1">бонус</span>
+                }
+            </div>
 
             @if (item.IsSelectedInCurrentRound)
             {
