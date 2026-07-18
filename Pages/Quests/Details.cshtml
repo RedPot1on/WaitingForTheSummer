@@ -49,7 +49,7 @@
 
     <div class="action-stack">
         <a class="btn btn-outline-secondary btn-touch" asp-page="./Index">К доске</a>
-        @if (Model.CanStart)
+        @if (Model.CanStart && !User.IsInRole("Admin"))
         {
             <form method="post">
                 <button type="submit" class="btn btn-primary btn-touch w-100">Начать</button>

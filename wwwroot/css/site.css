@@ -125,6 +125,113 @@ body.role-admin .container-player {
   color: #0d6efd;
 }
 
+.history-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.history-card {
+  border: 1px solid #dee2e6;
+  border-radius: 16px;
+  padding: 1rem;
+  background: #fff;
+}
+
+.history-card__title {
+  font-size: 1.15rem;
+  font-weight: 650;
+  margin: 0 0 0.5rem;
+}
+
+.history-card__desc {
+  white-space: pre-wrap;
+  margin-bottom: 0.75rem;
+  line-height: 1.45;
+  color: #495057;
+}
+
+.history-card__points {
+  display: grid;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.98rem;
+}
+
+.history-card__meta {
+  font-size: 0.85rem;
+  display: grid;
+  gap: 0.15rem;
+}
+
+.mafia-history-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.mafia-history-card {
+  border: 1px solid #dee2e6;
+  border-radius: 16px;
+  padding: 1rem;
+  background: #fff;
+  color: #212121;
+}
+
+.mafia-history-card__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.mafia-history-card__game {
+  font-weight: 650;
+  font-size: 1.05rem;
+}
+
+.mafia-history-card__role {
+  font-weight: 600;
+}
+
+.mafia-history-card__points {
+  font-size: 0.98rem;
+}
+
+.mafia-history-card.role-civilian {
+  background-color: #e53935;
+  border-color: #c62828;
+  color: #fff;
+}
+
+.mafia-history-card.role-sheriff {
+  background-color: #43a047;
+  border-color: #2e7d32;
+  color: #fff;
+}
+
+.mafia-history-card.role-mafia {
+  background-color: #9e9e9e;
+  border-color: #757575;
+  color: #212121;
+}
+
+.mafia-history-card.role-don {
+  background-color: #212121;
+  border-color: #000;
+  color: #fff;
+}
+
+.mafia-history-card.role-civilian .text-muted,
+.mafia-history-card.role-sheriff .text-muted,
+.mafia-history-card.role-don .text-muted {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.mafia-history-card.role-mafia .text-muted {
+  color: rgba(33, 33, 33, 0.7) !important;
+}
+
 .quest-card__actions {
   display: flex;
   flex-direction: column;
@@ -247,4 +354,125 @@ body.role-admin .container-player {
 body.role-admin .table-responsive,
 body.role-admin table {
   font-size: 0.95rem;
+}
+
+.side-game-table-wrap {
+  max-width: 100%;
+}
+
+.side-game-table {
+  min-width: 1100px;
+}
+
+.side-game-table .side-game-login {
+  position: sticky;
+  left: 0;
+  background: #fff;
+  z-index: 1;
+  min-width: 7rem;
+  white-space: nowrap;
+}
+
+.side-game-table thead .side-game-login {
+  z-index: 2;
+}
+
+.side-game-cell {
+  min-width: 4.75rem;
+  padding: 0.2rem !important;
+  vertical-align: middle;
+  transition: background-color 0.15s ease;
+}
+
+.side-game-combo {
+  display: flex;
+  align-items: stretch;
+  min-height: 1.75rem;
+  background: transparent;
+}
+
+.side-game-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+  text-align: center;
+  font-size: 0.875rem;
+  line-height: 1.75rem;
+  padding: 0 0.15rem;
+  color: inherit;
+  -moz-appearance: textfield;
+}
+
+.side-game-input:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.side-game-role {
+  flex: 0 0 1.35rem;
+  width: 1.35rem;
+  max-width: 1.35rem;
+  padding: 0;
+  margin: 0;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+  color: transparent; /* выбранная роль не отображается — только цвет ячейки */
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23666' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 0.55rem;
+}
+
+.side-game-role:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.side-game-role option {
+  color: #212121;
+  background: #fff;
+}
+
+/* Мирный — красный */
+.side-game-cell.role-civilian {
+  background-color: #e53935;
+  color: #fff;
+}
+
+/* Шериф — зелёный */
+.side-game-cell.role-sheriff {
+  background-color: #43a047;
+  color: #fff;
+}
+
+/* Мафия — серый */
+.side-game-cell.role-mafia {
+  background-color: #9e9e9e;
+  color: #212121;
+}
+
+/* Дон — чёрный */
+.side-game-cell.role-don {
+  background-color: #212121;
+  color: #fff;
+}
+
+.side-game-cell.role-civilian .side-game-role,
+.side-game-cell.role-sheriff .side-game-role,
+.side-game-cell.role-don .side-game-role {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23ffffff' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+}
+
+.side-game-cell.role-mafia .side-game-role {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23424242' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
 }

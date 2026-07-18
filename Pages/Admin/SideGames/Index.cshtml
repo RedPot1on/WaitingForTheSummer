@@ -1,0 +1,119 @@
+@page
+@model WaitingForTheSummer.Pages.Admin.SideGames.IndexModel
+@using WaitingForTheSummer.Models
+@{
+    ViewData["Title"] = "Мафия";
+    var roles = Enum.GetValues<SideGameRole>();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+        <h1 class="mb-1">Мафия</h1>
+        <div class="text-muted">Игры 1–12, баллы от @SideGameScore.MinPoints до @SideGameScore.MaxPoints. Сумма считается автоматически.</div>
+    </div>
+    <a class="btn btn-outline-secondary" asp-page="../Index">← Админка</a>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.StatusMessage))
+{
+    <div class="alert alert-success">@Model.StatusMessage</div>
+}
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-danger">@Model.ErrorMessage</div>
+}
+
+@if (Model.Players.Count == 0)
+{
+    <p class="text-muted">Нет игроков. Создайте участников в разделе «Пользователи».</p>
+}
+else
+{
+    <form method="post">
+        <div class="table-responsive side-games-table-wrap mb-3">
+            <table class="table table-bordered table-sm align-middle side-game-table">
+                <thead>
+                    <tr>
+                        <th class="side-game-login">Ник</th>
+                        @for (var g = 1; g <= SideGameScore.GameCount; g++)
+                        {
+                            <th class="text-center">Игра @g</th>
+                        }
+                        <th class="text-center">Сумма</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var p in Model.Players)
+                {
+                    <tr>
+                        <td class="side-game-login">@p.UserName</td>
+                        @for (var g = 1; g <= SideGameScore.GameCount; g++)
+                        {
+                            var cell = p.Cells[g - 1];
+                            var roleClass = cell.Role?.ToCssClass() ?? "";
+                            <td class="side-game-cell @roleClass" data-side-game-cell>
+                                <div class="side-game-combo">
+                                    <input class="side-game-input"
+                                           name="score_@(p.UserId)_@g"
+                                           type="text"
+                                           inputmode="decimal"
+                                           autocomplete="off"
+                                           placeholder=""
+                                           value="@(cell.Points?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "")" />
+                                    <select class="side-game-role"
+                                            name="role_@(p.UserId)_@g"
+                                            data-side-game-role
+                                            title="Роль"
+                                            aria-label="Роль">
+                                        <option value=""></option>
+                                        @foreach (var role in roles)
+                                        {
+                                            if (cell.Role == role)
+                                            {
+                                                <option value="@((int)role)" selected>@role.ToDisplayName()</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@((int)role)">@role.ToDisplayName()</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </td>
+                        }
+                        <td class="text-center fw-semibold">@p.Total.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+    </form>
+}
+
+@section Scripts {
+<script>
+(() => {
+    const classMap = {
+        '1': 'role-civilian',
+        '2': 'role-sheriff',
+        '3': 'role-mafia',
+        '4': 'role-don'
+    };
+    const allClasses = Object.values(classMap);
+
+    function applyRole(select) {
+        const cell = select.closest('[data-side-game-cell]');
+        if (!cell) return;
+        cell.classList.remove(...allClasses);
+        const cls = classMap[select.value];
+        if (cls) cell.classList.add(cls);
+    }
+
+    document.querySelectorAll('[data-side-game-role]').forEach(select => {
+        applyRole(select);
+        select.addEventListener('change', () => applyRole(select));
+    });
+})();
+</script>
+}

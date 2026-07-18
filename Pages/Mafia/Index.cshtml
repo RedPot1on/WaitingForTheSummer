@@ -1,0 +1,46 @@
+@page
+@model WaitingForTheSummer.Pages.Mafia.IndexModel
+@using WaitingForTheSummer.Models
+@{
+    ViewData["Title"] = "Мафия";
+}
+
+<div class="player-page">
+    <div class="page-header mb-3">
+        <div>
+            <h1 class="page-title mb-1">Мафия</h1>
+            <div class="text-muted">Всего баллов: <strong>@Model.TotalPoints.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)</strong></div>
+        </div>
+    </div>
+
+    @if (Model.Games.Count == 0)
+    {
+        <div class="alert alert-secondary">Пока нет записанных игр.</div>
+    }
+    else
+    {
+        <div class="mafia-history-list">
+        @foreach (var game in Model.Games)
+        {
+            var roleClass = game.Role?.ToCssClass() ?? "";
+            <article class="mafia-history-card @roleClass">
+                <div class="mafia-history-card__header">
+                    <span class="mafia-history-card__game">Игра @game.GameNumber</span>
+                    @if (game.Role is { } role)
+                    {
+                        <span class="mafia-history-card__role">@role.ToDisplayName()</span>
+                    }
+                    else
+                    {
+                        <span class="mafia-history-card__role text-muted">Роль не указана</span>
+                    }
+                </div>
+                <div class="mafia-history-card__points">
+                    <span class="text-muted">Баллы:</span>
+                    <strong>@Model.FormatPoints(game.Points)</strong>
+                </div>
+            </article>
+        }
+        </div>
+    }
+</div>

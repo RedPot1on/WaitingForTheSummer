@@ -15,6 +15,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<QuestRequirement> QuestRequirements => Set<QuestRequirement>();
     public DbSet<GameRound> GameRounds => Set<GameRound>();
     public DbSet<Round> Rounds => Set<Round>();
+    public DbSet<SideGameScore> SideGameScores => Set<SideGameScore>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -76,6 +77,16 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 .WithMany()
                 .HasForeignKey(x => x.ResolvedByAdminId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        builder.Entity<SideGameScore>(entity =>
+        {
+            entity.HasIndex(x => new { x.UserId, x.GameNumber }).IsUnique();
+
+            entity.HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

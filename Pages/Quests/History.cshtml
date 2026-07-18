@@ -1,0 +1,69 @@
+@page
+@model WaitingForTheSummer.Pages.Quests.HistoryModel
+@{
+    ViewData["Title"] = "История";
+}
+
+<div class="player-page">
+    <div class="page-header mb-3">
+        <div>
+            <h1 class="page-title mb-1">Моя история</h1>
+            <div class="text-muted">Всего баллов: <strong>@Model.TotalPoints</strong></div>
+        </div>
+        <a class="btn btn-outline-secondary btn-touch w-100 w-sm-auto" asp-page="./Index">К доске</a>
+    </div>
+
+    @if (Model.Items.Count == 0)
+    {
+        <div class="alert alert-secondary">Пока нет взятых квестов.</div>
+    }
+    else
+    {
+        <div class="history-list">
+        @foreach (var item in Model.Items)
+        {
+            <article class="history-card">
+                <div class="d-flex flex-wrap gap-2 mb-2">
+                    <span class="badge text-bg-light text-dark border">
+                        @(item.GameRoundKind == WaitingForTheSummer.Models.GameRoundKind.Bonus ? "Бонус" : "Раунд")
+                        № @item.GameRoundNumber
+                    </span>
+                    @if (item.IsBonusQuest)
+                    {
+                        <span class="badge text-bg-warning">бонусный квест</span>
+                    }
+                    <span class="badge @Model.StatusBadgeClass(item.Status)">@Model.StatusLabel(item.Status)</span>
+                </div>
+
+                <h2 class="history-card__title">@item.QuestTitle</h2>
+                <p class="history-card__desc">@item.QuestDescription</p>
+
+                <div class="history-card__points">
+                    <div><span class="text-muted">Стоимость квеста:</span> <strong>@item.QuestPoints</strong> б.</div>
+                    <div>
+                        <span class="text-muted">Начислено:</span>
+                        <strong class="@(item.Status == WaitingForTheSummer.Models.RoundStatus.Succeeded ? "text-success" : item.Status == WaitingForTheSummer.Models.RoundStatus.Failed ? "text-danger" : "")">
+                            @if (item.Status == WaitingForTheSummer.Models.RoundStatus.InProgress)
+                            {
+                                <text>—</text>
+                            }
+                            else
+                            {
+                                @item.PointsAwarded <text>б.</text>
+                            }
+                        </strong>
+                    </div>
+                </div>
+
+                <div class="history-card__meta text-muted">
+                    <div>Взят: @item.StartedAt.ToLocalTime().ToString("g")</div>
+                    @if (item.ResolvedAt is not null)
+                    {
+                        <div>Результат: @item.ResolvedAt.Value.ToLocalTime().ToString("g")</div>
+                    }
+                </div>
+            </article>
+        }
+        </div>
+    }
+</div>

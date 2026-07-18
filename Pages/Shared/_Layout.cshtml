@@ -25,9 +25,21 @@
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-page="/Quests/Index">Квесты</a>
                             </li>
+                            @if (!User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-page="/Rounds/Current">Мой квест</a>
+                                </li>
+                            }
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Rounds/Current">Мой квест</a>
+                                <a class="nav-link text-dark" asp-area="" asp-page="/Quests/History">История</a>
                             </li>
+                            @if (!User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-page="/Mafia/Index">Мафия</a>
+                                </li>
+                            }
                             @if (User.IsInRole("Admin"))
                             {
                                 <li class="nav-item">

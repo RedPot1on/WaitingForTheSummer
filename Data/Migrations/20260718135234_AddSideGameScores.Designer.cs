@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WaitingForTheSummer.Data;
 
@@ -10,9 +11,11 @@ using WaitingForTheSummer.Data;
 namespace WaitingForTheSummer.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260718135234_AddSideGameScores")]
+    partial class AddSideGameScores
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.29");
@@ -382,11 +385,8 @@ namespace WaitingForTheSummer.Data.Migrations
                     b.Property<int>("GameNumber")
                         .HasColumnType("INTEGER");
 
-                    b.Property<decimal?>("Points")
+                    b.Property<decimal>("Points")
                         .HasColumnType("TEXT");
-
-                    b.Property<int?>("Role")
-                        .HasColumnType("INTEGER");
 
                     b.Property<string>("UserId")
                         .IsRequired()

@@ -8,7 +8,10 @@
     <div class="page-header mb-3">
         <div>
             <h1 class="page-title mb-1">Доска квестов</h1>
-            <div class="text-muted">Ваши баллы: <strong>@Model.TotalPoints</strong></div>
+            <div class="text-muted">
+                Ваши баллы: <strong>@Model.TotalPoints</strong>
+                · <a asp-page="./History">история</a>
+            </div>
         </div>
         @if (Model.HasTakenQuest)
         {
@@ -113,7 +116,7 @@
 
             <div class="quest-card__actions">
                 <a class="btn btn-outline-secondary btn-touch" asp-page="./Details" asp-route-id="@quest.Id">Описание</a>
-                @if (item.CanStart)
+                @if (item.CanStart && !User.IsInRole("Admin"))
                 {
                     <form method="post" asp-page-handler="Start" asp-route-id="@quest.Id" class="quest-card__start">
                         <button type="submit" class="btn btn-primary btn-touch w-100">Начать</button>

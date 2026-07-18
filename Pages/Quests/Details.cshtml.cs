@@ -32,6 +32,12 @@ public class DetailsModel(ApplicationDbContext db, IQuestAccessService questAcce
 
     public async Task<IActionResult> OnPostAsync(int id, CancellationToken cancellationToken)
     {
+        if (User.IsInRole(AppRoles.Admin))
+        {
+            TempData["StatusMessage"] = "Администраторы не участвуют в квестах.";
+            return RedirectToPage("./Index");
+        }
+
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var (ok, error, _) = await roundService.TakeQuestAsync(userId, id, cancellationToken);
         if (!ok)

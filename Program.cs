@@ -67,6 +67,7 @@ try
     {
         options.Conventions.AuthorizeFolder("/Quests");
         options.Conventions.AuthorizeFolder("/Rounds");
+        options.Conventions.AuthorizeFolder("/Mafia");
         options.Conventions.AuthorizeFolder("/Admin", "RequireAdmin");
     });
 
