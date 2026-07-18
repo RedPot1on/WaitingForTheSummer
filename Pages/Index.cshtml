@@ -1,10 +1,26 @@
 ﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "WaitingForTheSummer";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <div class="text-center py-5">
+        <h1 class="display-6">WaitingForTheSummer</h1>
+        <p class="lead">Выбери квест и начни раунд.</p>
+        <a class="btn btn-primary btn-lg" asp-page="/Quests/Index">К доске квестов</a>
+        @if (User.IsInRole("Admin"))
+        {
+            <a class="btn btn-outline-secondary btn-lg ms-2" asp-page="/Admin/Index">Админка</a>
+        }
+    </div>
+}
+else
+{
+    <div class="text-center py-5">
+        <h1 class="display-6">WaitingForTheSummer</h1>
+        <p class="lead">Войдите, чтобы открыть доску квестов.</p>
+        <a class="btn btn-primary btn-lg" asp-area="Identity" asp-page="/Account/Login">Войти</a>
+    </div>
+}

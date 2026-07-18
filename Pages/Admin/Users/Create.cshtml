@@ -1,0 +1,27 @@
+@page
+@model WaitingForTheSummer.Pages.Admin.Users.CreateModel
+@{
+    ViewData["Title"] = "Создать игрока";
+}
+
+<h1>Создать игрока</h1>
+
+<form method="post" class="col-md-6">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="mb-3">
+        <label asp-for="Input.UserName" class="form-label"></label>
+        <input asp-for="Input.UserName" class="form-control" />
+        <span asp-validation-for="Input.UserName" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Input.Password" class="form-label"></label>
+        <input asp-for="Input.Password" class="form-control" />
+        <span asp-validation-for="Input.Password" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Создать</button>
+    <a class="btn btn-link" asp-page="./Index">Отмена</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,44 @@
+@page "{id:int}"
+@model WaitingForTheSummer.Pages.Quests.DetailsModel
+@{
+    ViewData["Title"] = Model.Quest?.Title ?? "Квест";
+}
+
+@if (Model.Quest is null)
+{
+    <p>Квест не найден.</p>
+    return;
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <h1>@Model.Quest.Title</h1>
+        <p class="lead" style="white-space: pre-wrap">@Model.Quest.Description</p>
+
+        @if (Model.RequiredTitles.Count > 0)
+        {
+            <p><strong>Требования:</strong> @string.Join(", ", Model.RequiredTitles)</p>
+        }
+        else
+        {
+            <p class="text-muted">Стартовый квест — требования не нужны.</p>
+        }
+
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-secondary" asp-page="./Index">К доске</a>
+            <form method="post">
+                <button type="submit" class="btn btn-primary" @(Model.CanStart ? null : "disabled")>Начать</button>
+            </form>
+        </div>
+        @if (!Model.CanStart && !string.IsNullOrEmpty(Model.LockReason))
+        {
+            <p class="text-muted mt-2">@Model.LockReason</p>
+        }
+    </div>
+    <div class="col-md-4 text-center">
+        @if (!string.IsNullOrEmpty(Model.Quest.IconPath))
+        {
+            <img src="@Model.Quest.IconPath" alt="@Model.Quest.Title" class="quest-icon-lg" />
+        }
+    </div>
+</div>

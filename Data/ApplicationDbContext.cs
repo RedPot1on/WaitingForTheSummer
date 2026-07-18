@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using WaitingForTheSummer.Models;
 
 namespace WaitingForTheSummer.Data;
 
@@ -8,5 +9,49 @@ public class ApplicationDbContext : IdentityDbContext
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
+    }
+
+    public DbSet<Quest> Quests => Set<Quest>();
+    public DbSet<QuestRequirement> QuestRequirements => Set<QuestRequirement>();
+    public DbSet<Round> Rounds => Set<Round>();
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
+
+        builder.Entity<QuestRequirement>(entity =>
+        {
+            entity.HasIndex(x => new { x.QuestId, x.RequiredQuestId }).IsUnique();
+
+            entity.HasOne(x => x.Quest)
+                .WithMany(x => x.Requirements)
+                .HasForeignKey(x => x.QuestId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(x => x.RequiredQuest)
+                .WithMany()
+                .HasForeignKey(x => x.RequiredQuestId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<Round>(entity =>
+        {
+            entity.HasIndex(x => new { x.UserId, x.Status });
+
+            entity.HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(x => x.Quest)
+                .WithMany(x => x.Rounds)
+                .HasForeignKey(x => x.QuestId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(x => x.ResolvedByAdmin)
+                .WithMany()
+                .HasForeignKey(x => x.ResolvedByAdminId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
     }
 }

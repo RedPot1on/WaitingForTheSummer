@@ -1,0 +1,78 @@
+@page
+@model WaitingForTheSummer.Pages.Admin.Rounds.IndexModel
+@{
+    ViewData["Title"] = "Раунды";
+}
+
+<h1>Раунды</h1>
+
+@if (!string.IsNullOrEmpty(Model.StatusMessage))
+{
+    <div class="alert alert-info">@Model.StatusMessage</div>
+}
+
+<h2 class="h4 mt-4">Активные</h2>
+@if (Model.Active.Count == 0)
+{
+    <p class="text-muted">Нет активных раундов.</p>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Игрок</th>
+                <th>Квест</th>
+                <th>Начат</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var r in Model.Active)
+        {
+            <tr>
+                <td>@r.UserName</td>
+                <td>@r.QuestTitle</td>
+                <td>@r.StartedAt.ToLocalTime().ToString("g")</td>
+                <td class="text-end">
+                    <form method="post" asp-page-handler="Resolve" class="d-inline">
+                        <input type="hidden" name="roundId" value="@r.Id" />
+                        <input type="hidden" name="outcome" value="Succeeded" />
+                        <button type="submit" class="btn btn-sm btn-success">Успех</button>
+                    </form>
+                    <form method="post" asp-page-handler="Resolve" class="d-inline">
+                        <input type="hidden" name="roundId" value="@r.Id" />
+                        <input type="hidden" name="outcome" value="Failed" />
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Провал</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+<h2 class="h4 mt-4">История</h2>
+<table class="table table-sm">
+    <thead>
+        <tr>
+            <th>Игрок</th>
+            <th>Квест</th>
+            <th>Статус</th>
+            <th>Завершён</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var r in Model.History)
+    {
+        <tr>
+            <td>@r.UserName</td>
+            <td>@r.QuestTitle</td>
+            <td>@r.Status</td>
+            <td>@(r.ResolvedAt?.ToLocalTime().ToString("g") ?? "—")</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<a asp-page="../Index">← Назад</a>

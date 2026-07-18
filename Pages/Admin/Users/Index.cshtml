@@ -1,0 +1,45 @@
+@page
+@model WaitingForTheSummer.Pages.Admin.Users.IndexModel
+@{
+    ViewData["Title"] = "Пользователи";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Пользователи</h1>
+    <a class="btn btn-primary" asp-page="./Create">Создать игрока</a>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.StatusMessage))
+{
+    <div class="alert alert-info">@Model.StatusMessage</div>
+}
+
+<table class="table table-striped align-middle">
+    <thead>
+        <tr>
+            <th>Логин</th>
+            <th>Роли</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var u in Model.Users)
+    {
+        <tr>
+            <td>@u.UserName</td>
+            <td>@string.Join(", ", u.Roles)</td>
+            <td class="text-end">
+                @if (u.Roles.Contains(WaitingForTheSummer.Models.AppRoles.Player) && !u.Roles.Contains(WaitingForTheSummer.Models.AppRoles.Admin))
+                {
+                    <form method="post" asp-page-handler="Delete" asp-route-id="@u.Id" class="d-inline"
+                          onsubmit="return confirm('Удалить игрока @u.UserName?');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+                    </form>
+                }
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<a asp-page="../Index">← Назад</a>
